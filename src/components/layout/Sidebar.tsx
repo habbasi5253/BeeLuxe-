@@ -13,6 +13,7 @@ import {
   HardHat,
   Send,
   ClipboardList,
+  Smartphone,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -117,6 +118,22 @@ export function Sidebar() {
           <ClipboardList size={18} className="shrink-0" />
           <span>Apply Link</span>
           <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-luxe-100 text-luxe-500">↗</span>
+        </Link>
+
+        <div className="pt-4 pb-1">
+          <p className="px-4 text-[10px] font-bold text-luxe-300 uppercase tracking-widest mb-1">
+            Sprint 3
+          </p>
+        </div>
+
+        <Link
+          href="/portal/1"
+          target="_blank"
+          className="sidebar-link"
+        >
+          <Smartphone size={18} className="shrink-0" />
+          <span>Cleaner Portal</span>
+          <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-emerald-100 text-emerald-700">↗</span>
         </Link>
       </nav>
 

@@ -1,104 +1,138 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
-import type { EventInput, EventClickArg } from '@fullcalendar/core'
-import { JobDetailPopup } from './JobDetailPopup'
+import type { EventInput, EventClickArg, EventDropArg, DateSelectArg, EventContentArg } from '@fullcalendar/core'
+import type { Job } from '@/lib/scheduling'
+import { JOB_COLORS } from '@/lib/scheduling'
 
-const jobColors: Record<string, string> = {
-  construction_trailer: '#f97316',
-  residential: '#3b82f6',
-  commercial: '#8b5cf6',
-  deep_clean: '#06b6d4',
-  recurring: '#10b981',
+interface Props {
+  jobs: Job[]
+  onJobClick: (jobId: string) => void
+  onJobDrop: (jobId: string, start: string, end: string) => void
+  onNewJobSlot: (slot: { start: string; end: string }) => void
 }
 
-const mockEvents: EventInput[] = [
-  {
-    id: '1', title: 'Apex Trailer #4 — Maria G.', start: new Date(Date.now() - 2 * 3600000).toISOString(),
-    end: new Date(Date.now() - 0 * 3600000).toISOString(),
-    color: jobColors.construction_trailer, extendedProps: { type: 'construction_trailer', cleaner: 'Maria Gonzalez', address: '1200 Industrial Blvd, Dallas', price: 380, status: 'in_progress' },
-  },
-  {
-    id: '2', title: 'Greenfield Home — James W.', start: new Date(Date.now() + 3 * 3600000).toISOString(),
-    end: new Date(Date.now() + 5 * 3600000).toISOString(),
-    color: jobColors.residential, extendedProps: { type: 'residential', cleaner: 'James Wright', address: '405 Oak Lane, Plano', price: 220, status: 'scheduled' },
-  },
-  {
-    id: '3', title: 'Metro Office Suite — Aisha P.', start: new Date(Date.now() + 7 * 3600000).toISOString(),
-    end: new Date(Date.now() + 10 * 3600000).toISOString(),
-    color: jobColors.commercial, extendedProps: { type: 'commercial', cleaner: 'Aisha Patel', address: '800 Commerce St, Dallas', price: 540, status: 'scheduled' },
-  },
-  {
-    id: '4', title: 'BuildRight Trailer #3 — Maria G.', start: new Date(Date.now() + 24 * 3600000).toISOString(),
-    end: new Date(Date.now() + 27 * 3600000).toISOString(),
-    color: jobColors.construction_trailer, extendedProps: { type: 'construction_trailer', cleaner: 'Maria Gonzalez', address: '550 Commerce Park Dr, Irving', price: 380, status: 'scheduled' },
-  },
-  {
-    id: '5', title: 'Sunrise Apt Move-Out (Unassigned)', start: new Date(Date.now() + 26 * 3600000).toISOString(),
-    end: new Date(Date.now() + 29 * 3600000).toISOString(),
-    color: '#94a3b8', extendedProps: { type: 'residential', cleaner: null, address: '222 Riverside Dr, Garland', price: 310, status: 'scheduled' },
-  },
-  {
-    id: '6', title: 'Greenfield Home (Weekly) — James W.', start: new Date(Date.now() + 7 * 24 * 3600000).toISOString(),
-    end: new Date(Date.now() + 7 * 24 * 3600000 + 2 * 3600000).toISOString(),
-    color: jobColors.recurring, extendedProps: { type: 'recurring', cleaner: 'James Wright', address: '405 Oak Lane, Plano', price: 180, status: 'scheduled' },
-  },
+function jobToEvent(job: Job): EventInput {
+  const color = job.cleaner_id ? JOB_COLORS[job.job_type] : '#94a3b8'
+  return {
+    id: job.id,
+    title: job.title,
+    start: job.scheduled_start,
+    end: job.scheduled_end,
+    backgroundColor: color,
+    borderColor: 'transparent',
+    extendedProps: {
+      job_type: job.job_type,
+      cleaner_name: job.cleaner_name,
+      status: job.status,
+      price: job.price,
+      unassigned: !job.cleaner_id,
+    },
+  }
+}
+
+function EventContent({ info }: { info: EventContentArg }) {
+  const { cleaner_name, unassigned, status } = info.event.extendedProps as {
+    cleaner_name: string | null
+    unassigned: boolean
+    status: string
+  }
+
+  return (
+    <div className="px-1.5 py-0.5 overflow-hidden h-full flex flex-col justify-center gap-0.5">
+      <div className="text-[11px] font-semibold leading-tight truncate text-white">
+        {info.event.title}
+      </div>
+      <div className="flex items-center gap-1">
+        {unassigned ? (
+          <span className="text-[9px] font-bold uppercase tracking-wide bg-white/25 text-white rounded px-1">
+            Unassigned
+          </span>
+        ) : cleaner_name ? (
+          <span className="text-[9px] text-white/80 truncate">{cleaner_name.split(' ')[0]}</span>
+        ) : null}
+        {status === 'in_progress' && (
+          <span className="text-[9px] font-bold uppercase tracking-wide bg-emerald-400/40 text-white rounded px-1">
+            Active
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const LEGEND_TYPES: Array<[string, string]> = [
+  ['Construction', JOB_COLORS.construction_trailer],
+  ['Residential',  JOB_COLORS.residential],
+  ['Commercial',   JOB_COLORS.commercial],
+  ['Deep Clean',   JOB_COLORS.deep_clean],
+  ['Airbnb',       JOB_COLORS.airbnb],
+  ['Move In/Out',  JOB_COLORS.move_in_out],
+  ['Recurring',    JOB_COLORS.recurring],
+  ['Unassigned',   '#94a3b8'],
 ]
 
-export function CalendarView() {
-  const [selectedEvent, setSelectedEvent] = useState<EventClickArg | null>(null)
+export function CalendarView({ jobs, onJobClick, onJobDrop, onNewJobSlot }: Props) {
+  const calRef = useRef<InstanceType<typeof FullCalendar>>(null)
 
   const handleEventClick = (info: EventClickArg) => {
-    setSelectedEvent(info)
+    onJobClick(info.event.id)
+  }
+
+  const handleEventDrop = (info: EventDropArg) => {
+    const { id, startStr, endStr } = info.event
+    if (!startStr) { info.revert(); return }
+    onJobDrop(id, startStr, endStr ?? startStr)
+  }
+
+  const handleSelect = (info: DateSelectArg) => {
+    onNewJobSlot({ start: info.startStr, end: info.endStr })
+    calRef.current?.getApi().unselect()
   }
 
   return (
     <div className="card h-full !p-0 overflow-hidden flex flex-col">
       {/* Legend */}
-      <div className="flex items-center gap-4 px-5 py-3 border-b border-luxe-100 bg-luxe-50/50">
-        {Object.entries(jobColors).map(([type, color]) => (
-          <div key={type} className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full" style={{ background: color }} />
-            <span className="text-xs text-luxe-500 capitalize">{type.replace('_', ' ')}</span>
+      <div className="flex items-center gap-3 flex-wrap px-5 py-3 border-b border-luxe-100 bg-luxe-50/50">
+        {LEGEND_TYPES.map(([label, color]) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
+            <span className="text-xs text-luxe-500">{label}</span>
           </div>
         ))}
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-luxe-300" />
-          <span className="text-xs text-luxe-500">Unassigned</span>
-        </div>
       </div>
 
       <div className="flex-1 p-4 overflow-hidden">
         <FullCalendar
+          ref={calRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
           initialView="timeGridWeek"
           headerToolbar={{
-            left: 'prev,next today',
+            left:   'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
+            right:  'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
           }}
-          events={mockEvents}
+          events={jobs.map(jobToEvent)}
           eventClick={handleEventClick}
+          eventDrop={handleEventDrop}
+          select={handleSelect}
           editable={true}
           selectable={true}
+          selectMirror={true}
           height="100%"
           slotMinTime="05:00:00"
           slotMaxTime="22:00:00"
           nowIndicator={true}
           eventDisplay="block"
-          eventBorderColor="transparent"
           dayMaxEvents={3}
+          eventContent={(info) => <EventContent info={info} />}
         />
       </div>
-
-      {selectedEvent && (
-        <JobDetailPopup event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-      )}
     </div>
   )
 }
