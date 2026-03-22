@@ -22,6 +22,7 @@ interface Evaluation {
   summary: string
   strengths: string[]
   concerns: string[]
+  owner_notes?: string
 }
 
 const REC_CONFIG = {
@@ -172,8 +173,14 @@ export function InterviewModal({ candidate, onClose, onStatusChange }: Props) {
                   ))}
                 </div>
               )}
+              {evaluation.owner_notes && (
+                <div className="mt-3 pt-3 border-t border-luxe-200/60">
+                  <p className="text-[10px] font-bold text-luxe-400 uppercase tracking-widest mb-1">Your gut check</p>
+                  <p className="text-xs text-luxe-600 italic">{evaluation.owner_notes}</p>
+                </div>
+              )}
               {isHighScore && (
-                <div className="mt-3 flex items-center gap-2 pt-3 border-t border-emerald-200">
+                <div className="mt-2 flex items-center gap-2 pt-2 border-t border-emerald-200">
                   <Star size={13} className="text-emerald-600" />
                   <span className="text-xs font-semibold text-emerald-700">High score — eligible for auto-vetting</span>
                 </div>
