@@ -12,6 +12,7 @@ import {
   ChevronRight,
   HardHat,
   Send,
+  ClipboardList,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -106,6 +107,16 @@ export function Sidebar() {
         >
           <Send size={18} className="shrink-0" />
           <span>Outreach</span>
+        </Link>
+
+        <Link
+          href="/apply"
+          target="_blank"
+          className="sidebar-link"
+        >
+          <ClipboardList size={18} className="shrink-0" />
+          <span>Apply Link</span>
+          <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-luxe-100 text-luxe-500">↗</span>
         </Link>
       </nav>
 

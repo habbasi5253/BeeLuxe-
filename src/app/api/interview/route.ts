@@ -1,32 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
 
-// Lazy-initialize the OpenAI client so Next.js static analysis
-// doesn't attempt to instantiate it (and throw) at build time.
-function getOpenAI() {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const OpenAI = require('openai').default ?? require('openai')
-  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+const SYSTEM_PROMPT = `You are BeeBot, the AI recruiter for BeeLuxe Cleaners — a premium cleaning company in the Houston, TX area specializing in construction trailer cleaning and commercial/residential services.
+
+Your job: conduct warm, conversational intake interviews with cleaning job applicants. Ask ONE question at a time. Be friendly but professional. Keep questions short and focused.
+
+Evaluate applicants on these dimensions (weighted):
+1. RELIABILITY (30pts) — attendance, consistency, references, professionalism
+2. EXPERIENCE (35pts) — years, types (construction trailer experience = bonus), certifications
+3. AVAILABILITY (20pts) — early morning 6-7 AM starts, weekends, flexibility
+4. LOGISTICS (15pts) — own vehicle/reliable transport, Houston area access
+
+Interview flow (6-8 exchanges):
+1. Welcome + ask about cleaning experience
+2. Ask about specific experience types (construction, commercial, residential)
+3. Ask about availability (mornings, weekends)
+4. Ask about transportation
+5. Ask about any certifications (OSHA, etc.) or special skills
+6. Ask one behavioral question (e.g. handling a difficult job site or client)
+7. Wrap up gracefully
+
+After 6-8 exchanges, output ONLY a JSON block in this exact format (no other text after):
+{
+  "score": <0-100 integer>,
+  "recommendation": "hire" | "maybe" | "reject",
+  "summary": "<2-3 sentence evaluation>",
+  "strengths": ["<strength 1>", "<strength 2>"],
+  "concerns": ["<concern 1>"]
 }
 
-const SYSTEM_PROMPT = `You are BeeBot, BeeLuxe Cleaners' AI recruiter assistant.
-Your job is to conduct intake interviews with cleaning job applicants via SMS.
-
-Quality benchmarks to evaluate:
-- Experience (residential, commercial, construction trailers preferred)
-- Availability (early morning 6-7 AM starts, weekends)
-- Transportation (own vehicle required)
-- Reliability and professionalism
-- Safety knowledge (OSHA, chemical handling)
-
-Ask one clear question at a time. Be warm, professional, and concise.
-After 6-8 exchanges, provide a JSON summary with:
-{
-  "score": 0-100,
-  "recommendation": "hire" | "maybe" | "reject",
-  "summary": "2-3 sentence evaluation",
-  "strengths": ["..."],
-  "concerns": ["..."]
-}`
+Score thresholds: hire ≥ 78 | maybe 55-77 | reject < 55`
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,30 +40,30 @@ export async function POST(req: NextRequest) {
       candidateName: string
     }
 
-    const openai = getOpenAI()
-    const systemMessage = `${SYSTEM_PROMPT}\n\nYou are currently interviewing: ${candidateName}`
-
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemMessage },
-        ...messages,
-      ],
-      temperature: 0.7,
-      max_tokens: 500,
+    const response = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 600,
+      system: `${SYSTEM_PROMPT}\n\nYou are currently interviewing: ${candidateName}`,
+      messages: messages.map((m) => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: m.content,
+      })),
     })
 
-    const reply: string = response.choices[0].message.content ?? ''
+    const reply = response.content[0].type === 'text' ? response.content[0].text : ''
 
-    // Detect if this is the final evaluation (contains JSON)
-    let evaluation = null
+    // Detect final evaluation JSON
+    let evaluation: {
+      score: number
+      recommendation: 'hire' | 'maybe' | 'reject'
+      summary: string
+      strengths: string[]
+      concerns: string[]
+    } | null = null
+
     const jsonMatch = reply.match(/\{[\s\S]*"score"[\s\S]*\}/)
     if (jsonMatch) {
-      try {
-        evaluation = JSON.parse(jsonMatch[0])
-      } catch {
-        // Not valid JSON
-      }
+      try { evaluation = JSON.parse(jsonMatch[0]) } catch { /* not valid JSON yet */ }
     }
 
     return NextResponse.json({ reply, evaluation })
