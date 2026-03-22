@@ -11,6 +11,7 @@ import {
   Settings,
   ChevronRight,
   HardHat,
+  Send,
 } from 'lucide-react'
 import { clsx } from 'clsx'
 
@@ -86,16 +87,25 @@ export function Sidebar() {
 
         <div className="pt-4 pb-1">
           <p className="px-4 text-[10px] font-bold text-luxe-300 uppercase tracking-widest mb-1">
-            Industry
+            Sprint 1
           </p>
         </div>
 
         <Link
-          href="/crm?type=construction_trailer"
-          className={clsx('sidebar-link', pathname.includes('construction') && 'active')}
+          href="/construction"
+          className={clsx('sidebar-link', pathname.startsWith('/construction') && 'active')}
         >
           <HardHat size={18} className="shrink-0" />
-          <span>Construction Trailers</span>
+          <span>Trailer CRM</span>
+          <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-orange-100 text-orange-700">HTX</span>
+        </Link>
+
+        <Link
+          href="/outreach"
+          className={clsx('sidebar-link', pathname.startsWith('/outreach') && 'active')}
+        >
+          <Send size={18} className="shrink-0" />
+          <span>Outreach</span>
         </Link>
       </nav>
 

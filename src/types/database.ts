@@ -79,6 +79,8 @@ export interface LeadRow {
   notes: string | null
   aec_project_id: string | null
   trailer_count: number | null
+  project_duration_months: number | null
+  cleaning_frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'custom' | null
   assigned_to: string | null
   tags: string[] | null
 }
@@ -100,6 +102,8 @@ export interface LeadInsert {
   notes?: string | null
   aec_project_id?: string | null
   trailer_count?: number | null
+  project_duration_months?: number | null
+  cleaning_frequency?: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'custom' | null
   assigned_to?: string | null
   tags?: string[] | null
 }

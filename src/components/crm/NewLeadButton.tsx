@@ -9,7 +9,8 @@ export function NewLeadButton() {
   const [form, setForm] = useState({
     company_name: '', contact_name: '', phone: '', email: '',
     lead_type: 'construction_trailer', city: '', state: 'TX',
-    project_value: '', trailer_count: '', aec_project_id: '', notes: '',
+    project_value: '', trailer_count: '', project_duration_months: '',
+    cleaning_frequency: 'weekly', aec_project_id: '', notes: '',
   })
 
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }))
@@ -88,6 +89,24 @@ export function NewLeadButton() {
                     <input className="input" type="number" placeholder="4" value={form.trailer_count} onChange={(e) => set('trailer_count', e.target.value)} />
                   </div>
                 )}
+              {form.lead_type === 'construction_trailer' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="label">Duration (months)</label>
+                    <input className="input" type="number" min="1" placeholder="8" value={form.project_duration_months} onChange={(e) => set('project_duration_months', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="label">Cleaning Frequency</label>
+                    <select className="select" value={form.cleaning_frequency} onChange={(e) => set('cleaning_frequency', e.target.value)}>
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="biweekly">Bi-weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                </div>
+              )}
               </div>
               {form.lead_type === 'construction_trailer' && (
                 <div>

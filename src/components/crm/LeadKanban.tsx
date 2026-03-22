@@ -19,6 +19,8 @@ export type Lead = {
   next_follow_up: string | null
   trailer_count: number | null
   aec_project_id: string | null
+  project_duration_months: number | null
+  cleaning_frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'custom' | null
   notes: string | null
   created_at: string
 }
@@ -29,7 +31,8 @@ const mockLeads: Lead[] = [
     phone: '555-0101', lead_type: 'construction_trailer', status: 'new',
     site_address: '1200 Industrial Blvd', city: 'Dallas', state: 'TX',
     project_value: 12000, next_follow_up: '2024-01-22', trailer_count: 4,
-    aec_project_id: 'AEC-2024-0441', notes: 'Large multi-phase project. 4 trailers on site.',
+    aec_project_id: 'AEC-2024-0441', project_duration_months: 8, cleaning_frequency: 'weekly',
+    notes: 'Large multi-phase project. 4 trailers on site.',
     created_at: '2024-01-16T10:00:00Z',
   },
   {
@@ -37,7 +40,8 @@ const mockLeads: Lead[] = [
     phone: '555-0201', lead_type: 'residential', status: 'new',
     site_address: '8802 Oak Lane', city: 'Plano', state: 'TX',
     project_value: 280, next_follow_up: '2024-01-20', trailer_count: null,
-    aec_project_id: null, notes: '3BR home, bi-weekly. Referred by Maria G.',
+    aec_project_id: null, project_duration_months: null, cleaning_frequency: 'biweekly',
+    notes: '3BR home, bi-weekly. Referred by Maria G.',
     created_at: '2024-01-17T14:00:00Z',
   },
   {
@@ -45,7 +49,8 @@ const mockLeads: Lead[] = [
     phone: '555-0301', lead_type: 'construction_trailer', status: 'contacted',
     site_address: '550 Commerce Park Dr', city: 'Irving', state: 'TX',
     project_value: 8400, next_follow_up: '2024-01-23', trailer_count: 3,
-    aec_project_id: 'AEC-2024-0389', notes: 'Need to schedule site visit.',
+    aec_project_id: 'AEC-2024-0389', project_duration_months: 6, cleaning_frequency: 'biweekly',
+    notes: 'Need to schedule site visit.',
     created_at: '2024-01-14T09:00:00Z',
   },
   {
@@ -53,7 +58,8 @@ const mockLeads: Lead[] = [
     phone: '555-0401', lead_type: 'commercial', status: 'contacted',
     site_address: '100 Main St Suite 200', city: 'Dallas', state: 'TX',
     project_value: 5200, next_follow_up: '2024-01-21', trailer_count: null,
-    aec_project_id: null, notes: 'Office complex, 3 floors. Monthly contract possible.',
+    aec_project_id: null, project_duration_months: null, cleaning_frequency: 'monthly',
+    notes: 'Office complex, 3 floors. Monthly contract possible.',
     created_at: '2024-01-13T11:00:00Z',
   },
   {
@@ -61,7 +67,8 @@ const mockLeads: Lead[] = [
     phone: '555-0501', lead_type: 'construction_trailer', status: 'qualified',
     site_address: '3300 Ridgeline Pkwy', city: 'Frisco', state: 'TX',
     project_value: 19200, next_follow_up: '2024-01-25', trailer_count: 8,
-    aec_project_id: 'AEC-2024-0512', notes: 'Largest pipeline deal. 8-trailer subdivision.',
+    aec_project_id: 'AEC-2024-0512', project_duration_months: 18, cleaning_frequency: 'weekly',
+    notes: 'Largest pipeline deal. 8-trailer subdivision.',
     created_at: '2024-01-10T08:00:00Z',
   },
   {
@@ -69,7 +76,8 @@ const mockLeads: Lead[] = [
     phone: '555-0601', lead_type: 'residential', status: 'qualified',
     site_address: '404 Elm Court', city: 'Richardson', state: 'TX',
     project_value: 180, next_follow_up: '2024-01-22', trailer_count: null,
-    aec_project_id: null, notes: 'Weekly cleaning, flexible schedule.',
+    aec_project_id: null, project_duration_months: null, cleaning_frequency: 'weekly',
+    notes: 'Weekly cleaning, flexible schedule.',
     created_at: '2024-01-12T15:00:00Z',
   },
   {
@@ -77,7 +85,8 @@ const mockLeads: Lead[] = [
     phone: '555-0701', lead_type: 'commercial', status: 'proposal',
     site_address: '700 Akard St', city: 'Dallas', state: 'TX',
     project_value: 7800, next_follow_up: null, trailer_count: null,
-    aec_project_id: null, notes: 'Proposal sent Jan 15. Follow up if no response.',
+    aec_project_id: null, project_duration_months: null, cleaning_frequency: 'weekly',
+    notes: 'Proposal sent Jan 15. Follow up if no response.',
     created_at: '2024-01-08T10:00:00Z',
   },
   {
@@ -85,7 +94,8 @@ const mockLeads: Lead[] = [
     phone: '555-0101', lead_type: 'construction_trailer', status: 'won',
     site_address: '900 Industrial Blvd', city: 'Dallas', state: 'TX',
     project_value: 4800, next_follow_up: null, trailer_count: 2,
-    aec_project_id: 'AEC-2023-0388', notes: 'Converted! Monthly recurring.',
+    aec_project_id: 'AEC-2023-0388', project_duration_months: 4, cleaning_frequency: 'weekly',
+    notes: 'Converted! Monthly recurring.',
     created_at: '2024-01-05T10:00:00Z',
   },
 ]

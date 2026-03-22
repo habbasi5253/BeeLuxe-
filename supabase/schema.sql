@@ -62,10 +62,12 @@ CREATE TABLE leads (
   last_contacted  TIMESTAMPTZ,
   source          TEXT,
   notes           TEXT,
-  aec_project_id  TEXT,
-  trailer_count   SMALLINT,
-  assigned_to     UUID,
-  tags            TEXT[]
+  aec_project_id          TEXT,
+  trailer_count           SMALLINT,
+  project_duration_months SMALLINT,
+  cleaning_frequency      TEXT CHECK (cleaning_frequency IN ('daily','weekly','biweekly','monthly','custom')),
+  assigned_to             UUID,
+  tags                    TEXT[]
 );
 
 CREATE TABLE lead_activities (
