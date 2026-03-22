@@ -48,7 +48,7 @@ export function MarginChart() {
           <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
             domain={[50, 70]} tickFormatter={(v) => `${v}%`} />
           <Tooltip
-            formatter={(value: number) => [`${value}%`, 'Gross Margin']}
+            formatter={(value) => [`${value}%`, 'Gross Margin']}
             contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 12 }}
           />
           <ReferenceLine y={60} stroke="#cbd5e1" strokeDasharray="4 4" />

@@ -1,0 +1,28 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@beeluxe-supabase-url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@beeluxe-supabase-anon-key"
+  },
+  "functions": {
+    "src/app/api/interview/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/sms/route.ts": {
+      "maxDuration": 15
+    },
+    "src/app/api/schedule/route.ts": {
+      "maxDuration": 15
+    },
+    "src/app/api/finance/route.ts": {
+      "maxDuration": 15
+    },
+    "src/app/api/leads/route.ts": {
+      "maxDuration": 15
+    }
+  }
+}

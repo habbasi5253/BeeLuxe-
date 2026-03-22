@@ -24,7 +24,7 @@ export function RevenueChart() {
           <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false}
             tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
           <Tooltip
-            formatter={(value: number, name: string) => [`$${value.toLocaleString()}`, name]}
+            formatter={(value, name) => [`$${Number(value).toLocaleString()}`, String(name)]}
             contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 12 }}
           />
           <Legend wrapperStyle={{ fontSize: 11 }} />

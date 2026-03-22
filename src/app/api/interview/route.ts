@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+// Lazy-initialize the OpenAI client so Next.js static analysis
+// doesn't attempt to instantiate it (and throw) at build time.
+function getOpenAI() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const OpenAI = require('openai').default ?? require('openai')
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+}
 
 const SYSTEM_PROMPT = `You are BeeBot, BeeLuxe Cleaners' AI recruiter assistant.
 Your job is to conduct intake interviews with cleaning job applicants via SMS.
@@ -30,6 +35,7 @@ export async function POST(req: NextRequest) {
       candidateName: string
     }
 
+    const openai = getOpenAI()
     const systemMessage = `${SYSTEM_PROMPT}\n\nYou are currently interviewing: ${candidateName}`
 
     const response = await openai.chat.completions.create({
@@ -42,7 +48,7 @@ export async function POST(req: NextRequest) {
       max_tokens: 500,
     })
 
-    const reply = response.choices[0].message.content ?? ''
+    const reply: string = response.choices[0].message.content ?? ''
 
     // Detect if this is the final evaluation (contains JSON)
     let evaluation = null
@@ -51,7 +57,7 @@ export async function POST(req: NextRequest) {
       try {
         evaluation = JSON.parse(jsonMatch[0])
       } catch {
-        // Not valid JSON yet
+        // Not valid JSON
       }
     }
 
