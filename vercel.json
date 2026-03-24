@@ -4,25 +4,66 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "regions": ["iad1"],
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@beeluxe-supabase-url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@beeluxe-supabase-anon-key"
-  },
+
   "functions": {
-    "src/app/api/interview/route.ts": {
-      "maxDuration": 30
+    "src/app/api/interview/route.ts": { "maxDuration": 30 },
+    "src/app/api/apply/route.ts":     { "maxDuration": 20 },
+    "src/app/api/notify/route.ts":    { "maxDuration": 15 },
+    "src/app/api/health/route.ts":    { "maxDuration": 10 }
+  },
+
+  "crons": [
+    {
+      "path": "/api/notify?secret=REPLACE_WITH_NOTIFY_SECRET",
+      "schedule": "0 13 * * *",
+      "comment": "Daily 8 AM CST (13:00 UTC) — 24h email reminders for tomorrow's jobs"
     },
-    "src/app/api/sms/route.ts": {
-      "maxDuration": 15
-    },
-    "src/app/api/schedule/route.ts": {
-      "maxDuration": 15
-    },
-    "src/app/api/finance/route.ts": {
-      "maxDuration": 15
-    },
-    "src/app/api/leads/route.ts": {
-      "maxDuration": 15
+    {
+      "path": "/api/archive?secret=REPLACE_WITH_ARCHIVE_SECRET",
+      "schedule": "0 8 * * 0",
+      "comment": "Weekly Sunday 3 AM CST (08:00 UTC) — move stale records to archive tables"
     }
-  }
+  ],
+
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL":       "@beeluxe-supabase-url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY":  "@beeluxe-supabase-anon-key",
+    "SUPABASE_SERVICE_ROLE_KEY":      "@beeluxe-supabase-service-role-key",
+    "ANTHROPIC_API_KEY":              "@beeluxe-anthropic-key",
+    "TWILIO_ACCOUNT_SID":             "@beeluxe-twilio-sid",
+    "TWILIO_AUTH_TOKEN":              "@beeluxe-twilio-token",
+    "TWILIO_PHONE_NUMBER":            "@beeluxe-twilio-phone",
+    "NOTIFY_SECRET":                  "@beeluxe-notify-secret",
+    "SENTRY_DSN":                     "@beeluxe-sentry-dsn",
+    "NEXT_PUBLIC_SENTRY_DSN":         "@beeluxe-sentry-dsn-public",
+    "SENTRY_AUTH_TOKEN":              "@beeluxe-sentry-auth-token",
+    "GROQ_API_KEY":                   "@beeluxe-groq-api-key",
+    "RESEND_API_KEY":                 "@beeluxe-resend-api-key",
+    "RESEND_FROM_EMAIL":              "@beeluxe-resend-from-email",
+    "NEXT_PUBLIC_VAPID_PUBLIC_KEY":   "@beeluxe-vapid-public-key",
+    "VAPID_PRIVATE_KEY":              "@beeluxe-vapid-private-key",
+    "VAPID_SUBJECT":                  "@beeluxe-vapid-subject",
+    "ARCHIVE_SECRET":                 "@beeluxe-archive-secret",
+    "NEXT_PUBLIC_APP_URL":            "@beeluxe-app-url",
+    "NEXT_PUBLIC_APP_ENV":            "production",
+    "NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA": "@vercel-git-commit-sha"
+  },
+
+  "_comment_env_separation": [
+    "Vercel has three built-in environment tiers:",
+    "  Production  — main branch → beeluxecleaners.com   (LIVE Twilio/Stripe keys)",
+    "  Preview     — every PR    → *.vercel.app preview  (TEST keys, see below)",
+    "  Development — local       → .env.local            (TEST keys, see .env.staging.example)",
+    "",
+    "In the Vercel dashboard, each secret above can be scoped to:",
+    "  [x] Production  [x] Preview  [x] Development",
+    "",
+    "For staging (Preview deployments), create SEPARATE Vercel secrets with -staging suffix:",
+    "  beeluxe-twilio-sid-staging     → Twilio TEST Account SID (starts with ACtest...)",
+    "  beeluxe-anthropic-key-staging  → can share prod key (Anthropic has no test mode)",
+    "  beeluxe-supabase-url-staging   → staging Supabase project URL",
+    "",
+    "Then in Vercel → Settings → Environment Variables, set each var to use the",
+    "-staging variant in Preview scope and the production variant in Production scope."
+  ]
 }

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+import { chat, type ChatMessage } from '@/lib/ai'
+import { logger } from '@/lib/logger'
 
 const SYSTEM_PROMPT = `You are BeeBot, the AI recruiter for BeeLuxe Cleaners — a premium cleaning company in the Houston, TX area.
 
@@ -70,17 +69,12 @@ export async function POST(req: NextRequest) {
       candidateName: string
     }
 
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 600,
-      system: `${SYSTEM_PROMPT}\n\nYou are currently interviewing: ${candidateName}`,
-      messages: messages.map((m) => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.content,
-      })),
-    })
+    const chatMessages: ChatMessage[] = [
+      { role: 'system', content: `${SYSTEM_PROMPT}\n\nYou are currently interviewing: ${candidateName}` },
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
+    ]
 
-    const reply = response.content[0].type === 'text' ? response.content[0].text : ''
+    const result = await chat(chatMessages, { maxTokens: 600 })
 
     let evaluation: {
       score: number
@@ -91,17 +85,15 @@ export async function POST(req: NextRequest) {
       owner_notes?: string
     } | null = null
 
-    const jsonMatch = reply.match(/\{[\s\S]*"score"[\s\S]*\}/)
+    const jsonMatch = result.text.match(/\{[\s\S]*"score"[\s\S]*\}/)
     if (jsonMatch) {
-      try { evaluation = JSON.parse(jsonMatch[0]) } catch { /* not valid JSON yet */ }
+      try { evaluation = JSON.parse(jsonMatch[0]) } catch { /* not complete JSON yet */ }
     }
 
-    return NextResponse.json({ reply, evaluation })
+    logger.info('interview', 'Turn processed', { provider: result.provider, evaluated: !!evaluation })
+    return NextResponse.json({ reply: result.text, evaluation })
   } catch (err) {
-    // Log only the error message — never the message array, which contains
-    // the candidate's full interview transcript (PII).
-    const message = err instanceof Error ? err.message : 'unknown error'
-    console.error('Interview API error:', message)
+    logger.error('interview', err)
     return NextResponse.json({ error: 'Interview service unavailable' }, { status: 500 })
   }
 }

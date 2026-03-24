@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import {
   X, MapPin, Clock, DollarSign, Bell, Loader2, CheckCircle2,
-  Circle, AlertCircle, ExternalLink, User
+  Circle, AlertCircle, User
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { Job, Cleaner, ChecklistItem } from '@/lib/scheduling'
+import { MapEmbed } from '@/components/ui/MapEmbed'
 
 interface Props {
   job: Job
@@ -20,9 +21,6 @@ function fmtTime(iso: string) {
 }
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
-}
-function mapsLink(address: string, city: string) {
-  return `https://maps.google.com/?q=${encodeURIComponent(`${address}, ${city}, TX`)}`
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -122,14 +120,8 @@ export function JobDetailPopup({ job, cleaners, onClose, onSave }: Props) {
             <div className="flex items-center gap-2 text-sm text-luxe-700">
               <MapPin size={13} className="text-luxe-400 shrink-0" />
               {job.address}, {job.city}
-              <a
-                href={mapsLink(job.address, job.city)}
-                target="_blank" rel="noopener noreferrer"
-                className="ml-auto text-blue-500 hover:text-blue-700 shrink-0"
-              >
-                <ExternalLink size={12} />
-              </a>
             </div>
+            <MapEmbed address={job.address} city={job.city} height={180} />
             <div className="flex items-center gap-2 text-sm text-luxe-700">
               <DollarSign size={13} className="text-luxe-400 shrink-0" />
               ${job.price.toLocaleString()} job value

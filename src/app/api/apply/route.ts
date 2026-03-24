@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+import { chat } from '@/lib/ai'
+import { logger } from '@/lib/logger'
 
 export interface ApplicationPayload {
   full_name: string
@@ -50,13 +49,12 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as ApplicationPayload
 
-    // Hard disqualifiers — skip Claude call entirely
-    // These are operational non-starters: no amount of experience overcomes them.
+    // Hard disqualifiers — skip AI call entirely
     const hardRejectReasons: string[] = []
-    if (body.work_authorized === false)       hardRejectReasons.push('Not authorized to work in the U.S.')
-    if (body.has_transport === false)         hardRejectReasons.push('No reliable transportation')
-    if (body.can_pass_background === false)   hardRejectReasons.push('Cannot pass background check')
-    if (body.covers_service_area === false)   hardRejectReasons.push('Cannot cover Houston metro service area')
+    if (body.work_authorized === false)          hardRejectReasons.push('Not authorized to work in the U.S.')
+    if (body.has_transport === false)            hardRejectReasons.push('No reliable transportation')
+    if (body.can_pass_background === false)      hardRejectReasons.push('Cannot pass background check')
+    if (body.covers_service_area === false)      hardRejectReasons.push('Cannot cover Houston metro service area')
     if (body.willing_to_get_insurance === false) hardRejectReasons.push('Unwilling to carry business insurance (~$20/mo required)')
 
     if (hardRejectReasons.length > 0) {
@@ -71,13 +69,13 @@ export async function POST(req: NextRequest) {
       } satisfies ApplicationResult)
     }
 
-    const expText = body.experience_types.map((t) => EXP_LABEL[t] ?? t).join(', ') || 'not specified'
+    const expText  = body.experience_types.map((t) => EXP_LABEL[t] ?? t).join(', ') || 'not specified'
     const availText = body.availability.map((a) => ({
       weekdays: 'Mon–Fri', weekends: 'weekends', early_morning: 'early morning (6–7 AM)',
       evenings: 'evenings', flexible: 'fully flexible',
     }[a] ?? a)).join(', ') || 'not specified'
 
-    const prompt = `You are evaluating a cleaning job application for BeeLuxe Cleaners in Houston, TX.
+    const userPrompt = `You are evaluating a cleaning job application for BeeLuxe Cleaners in Houston, TX.
 
 APPLICANT: ${body.full_name}  |  Phone: ${body.phone}${body.email ? `  |  Email: ${body.email}` : ''}
 Currently employed: ${body.currently_employed || 'not provided'}
@@ -128,25 +126,18 @@ Respond with ONLY this JSON:
   "owner_notes": "<1-2 sentences: did their answers suggest connection/trust? Would you feel confident sending them to a client's home?>"
 }`
 
-    const response = await client.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 500,
-      messages: [{ role: 'user', content: prompt }],
-    })
+    const result = await chat([{ role: 'user', content: userPrompt }], { maxTokens: 500 })
 
-    const text = response.content[0].type === 'text' ? response.content[0].text : '{}'
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('No JSON in response')
+    const jsonMatch = result.text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) throw new Error('No JSON in AI response')
 
-    const result = JSON.parse(jsonMatch[0]) as Omit<ApplicationResult, 'auto_vetted'>
-    const auto_vetted = result.score >= 78 && result.recommendation === 'hire'
+    const scored = JSON.parse(jsonMatch[0]) as Omit<ApplicationResult, 'auto_vetted'>
+    const auto_vetted = scored.score >= 78 && scored.recommendation === 'hire'
 
-    return NextResponse.json({ ...result, auto_vetted } satisfies ApplicationResult)
+    logger.info('apply', 'Application scored', { provider: result.provider, score: scored.score })
+    return NextResponse.json({ ...scored, auto_vetted } satisfies ApplicationResult)
   } catch (err) {
-    // Log only the error message — never the request body, which contains
-    // applicant PII (name, phone, behavioral responses).
-    const message = err instanceof Error ? err.message : 'unknown error'
-    console.error('Apply API error:', message)
+    logger.error('apply', err)
     return NextResponse.json({ error: 'Application scoring unavailable' }, { status: 500 })
   }
 }
