@@ -64,24 +64,25 @@ function Checklist({ items, onToggle }: { items: ChecklistItem[]; onToggle: (id:
         </span>
       </div>
 
-      {/* Items */}
-      <ul className="space-y-1.5">
+      {/* Items — min-h-[48px] for glove-friendly tap targets */}
+      <ul className="space-y-2">
         {items.map((item) => (
           <li key={item.id}>
             <button
               onClick={() => onToggle(item.id)}
+              style={{ touchAction: 'manipulation' }}
               className={clsx(
-                'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all',
+                'w-full flex items-center gap-3 px-4 py-3 min-h-[48px] rounded-xl text-left transition-all active:scale-[0.98]',
                 item.completed
                   ? 'bg-emerald-50 text-emerald-700'
-                  : 'bg-luxe-50 text-luxe-700 hover:bg-luxe-100'
+                  : 'bg-luxe-50 text-luxe-700 active:bg-luxe-100'
               )}
             >
               {item.completed
-                ? <CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
-                : <Circle size={16} className="text-luxe-300 shrink-0" />
+                ? <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+                : <Circle size={18} className="text-luxe-300 shrink-0" />
               }
-              <span className={clsx('text-sm', item.completed && 'line-through opacity-60')}>
+              <span className={clsx('text-sm leading-snug', item.completed && 'line-through opacity-60')}>
                 {item.text}
               </span>
             </button>
@@ -118,10 +119,11 @@ function JobCard({ job, onChecklistToggle }: {
       tomorrow ? 'border-luxe-200' :
       'border-luxe-100'
     )}>
-      {/* Card header */}
+      {/* Card header — full-width tap target, min 56px tall */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left"
+        style={{ touchAction: 'manipulation' }}
+        className="w-full text-left min-h-[56px]"
       >
         <div className="flex items-stretch">
           {/* Color bar */}
@@ -170,17 +172,19 @@ function JobCard({ job, onChecklistToggle }: {
       {expanded && (
         <div className="px-4 pb-4 pt-2 border-t border-luxe-100 space-y-4">
           {/* Quick info */}
+          {/* min-h-[52px] — large enough even with work gloves */}
           <div className="grid grid-cols-2 gap-2">
             <a
               href={mapsLink(job.address, job.city)}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold hover:bg-blue-100 transition-colors"
+              style={{ touchAction: 'manipulation' }}
+              className="flex items-center justify-center gap-2 px-3 py-3.5 min-h-[52px] rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold active:bg-blue-100 transition-colors"
             >
-              <MapPin size={13} />Get Directions
+              <MapPin size={15} />Get Directions
             </a>
-            <div className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-luxe-50 border border-luxe-200 text-luxe-600 text-xs font-semibold">
-              <CalendarDays size={13} />
+            <div className="flex items-center justify-center gap-2 px-3 py-3.5 min-h-[52px] rounded-xl bg-luxe-50 border border-luxe-200 text-luxe-600 text-sm font-semibold">
+              <CalendarDays size={15} />
               {fmtDate(job.scheduled_start)}
             </div>
           </div>
@@ -258,8 +262,13 @@ export default function PortalPage({ params }: { params: Promise<{ cleanerId: st
             <p className="font-black text-luxe-900 leading-tight">Hey, {cleaner.name.split(' ')[0]}! 🐝</p>
             <p className="text-xs text-luxe-400">BeeLuxe Cleaners · Your Schedule</p>
           </div>
-          <a href={`tel:${cleaner.phone}`} className="p-2 rounded-xl bg-luxe-100 text-luxe-500 hover:bg-luxe-200 transition-colors">
-            <Phone size={16} />
+          {/* min 44×44 touch target for gloves */}
+          <a
+            href={`tel:${cleaner.phone}`}
+            style={{ touchAction: 'manipulation' }}
+            className="w-11 h-11 flex items-center justify-center rounded-xl bg-luxe-100 text-luxe-500 active:bg-luxe-200 transition-colors"
+          >
+            <Phone size={18} />
           </a>
         </div>
       </div>

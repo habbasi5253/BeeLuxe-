@@ -134,9 +134,16 @@
     border: 1px solid var(--color-luxe-200);
     background-color: white;
     color: var(--color-luxe-900);
-    font-size: 0.875rem;
+    /*
+     * MOBILE: iOS Safari zooms the viewport when a focused input has
+     * font-size < 16px. Force 16px (1rem) to prevent that behaviour.
+     * The dashboard shrinks it back to 14px via Tailwind on desktop.
+     */
+    font-size: 1rem;
     outline: none;
     transition: border-color 150ms, box-shadow 150ms;
+    /* Remove double-tap zoom delay on form fields */
+    touch-action: manipulation;
   }
   .input::placeholder { color: var(--color-luxe-400); }
   .input:focus {
@@ -151,10 +158,12 @@
     border: 1px solid var(--color-luxe-200);
     background-color: white;
     color: var(--color-luxe-900);
-    font-size: 0.875rem;
+    /* Same iOS zoom fix as .input */
+    font-size: 1rem;
     outline: none;
     transition: border-color 150ms, box-shadow 150ms;
     appearance: none;
+    touch-action: manipulation;
   }
   .select:focus {
     border-color: var(--color-bee-400);
@@ -221,6 +230,17 @@
   .section-title { font-size: 1.125rem; font-weight: 600; color: var(--color-luxe-800); margin-bottom: 1rem; }
 }
 
+/* ─── Global touch / button hardening ──────────────────────────────────────── */
+
+/*
+ * Kill the 300ms tap delay on all buttons and links.
+ * Individual interactive elements that need it already set touch-action
+ * explicitly, but this catches anything we may have missed.
+ */
+button, a, [role="button"] {
+  touch-action: manipulation;
+}
+
 /* ─── FullCalendar overrides ────────────────────────────────────────────────── */
 .fc .fc-toolbar-title { font-size: 1.125rem; font-weight: 700; color: var(--color-luxe-800); }
 .fc .fc-button-primary { background-color: var(--color-bee-500) !important; border-color: var(--color-bee-500) !important; }
@@ -228,6 +248,15 @@
 .fc .fc-daygrid-event, .fc .fc-timegrid-event { border-radius: 0.5rem !important; }
 .fc-theme-standard td, .fc-theme-standard th { border-color: var(--color-luxe-100) !important; }
 .fc .fc-timegrid-slot { height: 3rem; }
+
+/* Mobile: switch to day-grid on small screens so the calendar is readable */
+@media (max-width: 640px) {
+  .fc .fc-toolbar { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+  .fc .fc-toolbar-title { font-size: 0.875rem; }
+  .fc .fc-button { padding: 0.375rem 0.625rem !important; font-size: 0.75rem !important; }
+  /* Enlarge event tap targets on mobile */
+  .fc-timegrid-event .fc-event-main { min-height: 2.5rem; }
+}
 
 /* ─── Gradient utilities ────────────────────────────────────────────────────── */
 .bg-gradient-bee  { background-image: var(--background-image-gradient-bee); }

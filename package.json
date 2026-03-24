@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "db:migrate": "node supabase/migrate.js"
   },
   "repository": {
@@ -49,7 +51,9 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@vitest/ui": "^4.1.1",
     "eslint": "^8.57.1",
-    "eslint-config-next": "^14.2.29"
+    "eslint-config-next": "^14.2.29",
+    "vitest": "^4.1.1"
   }
 }

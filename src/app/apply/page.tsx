@@ -15,10 +15,14 @@ function CheckItem({ checked, onChange, label, note }: {
   checked: boolean; onChange: () => void; label: string; note?: string
 }) {
   return (
-    <button type="button" onClick={onChange} className={clsx(
-      'flex items-center gap-3 w-full px-4 py-3 rounded-xl border-2 text-left transition-all',
-      checked ? 'border-bee-400 bg-bee-50' : 'border-luxe-200 bg-white hover:border-luxe-300'
-    )}>
+    <button
+      type="button"
+      onClick={onChange}
+      style={{ touchAction: 'manipulation' }}
+      className={clsx(
+        'flex items-center gap-3 w-full px-4 py-3.5 min-h-[52px] rounded-xl border-2 text-left transition-all active:scale-[0.98]',
+        checked ? 'border-bee-400 bg-bee-50' : 'border-luxe-200 bg-white active:border-luxe-300'
+      )}>
       <div className={clsx(
         'w-5 h-5 rounded flex items-center justify-center shrink-0 border-2 transition-colors',
         checked ? 'bg-bee-500 border-bee-500' : 'border-luxe-300'
@@ -37,10 +41,19 @@ function YesNo({ value, onChange, yesLabel = 'Yes', noLabel = 'No' }: {
   return (
     <div className="flex gap-3">
       {([true, false] as const).map((v) => (
-        <button key={String(v)} type="button" onClick={() => onChange(v)} className={clsx(
-          'flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all',
-          value === v ? 'border-bee-400 bg-bee-50 text-bee-800' : 'border-luxe-200 bg-white text-luxe-500 hover:border-luxe-300'
-        )}>
+        <button
+          key={String(v)}
+          type="button"
+          onClick={() => onChange(v)}
+          style={{ touchAction: 'manipulation' }}
+          className={clsx(
+            /* min-h-[52px] — glove-safe tap target */
+            'flex-1 py-3.5 min-h-[52px] rounded-xl border-2 text-base font-semibold transition-all active:scale-[0.98]',
+            value === v
+              ? 'border-bee-400 bg-bee-50 text-bee-800'
+              : 'border-luxe-200 bg-white text-luxe-500 active:border-luxe-300'
+          )}
+        >
           {v ? yesLabel : noLabel}
         </button>
       ))}

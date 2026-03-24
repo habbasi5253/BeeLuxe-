@@ -238,3 +238,132 @@ export const INITIAL_JOBS: Job[] = [
 export const PORTAL_CLEANER_MAP: Record<string, string> = {
   '1': '1', '2': '2', '3': '3', '4': '4', '5': '5',
 }
+
+// ── Conflict detection ────────────────────────────────────────────────────────
+
+export interface ConflictCheckParams {
+  /** Cleaner to check */
+  cleaner_id: string
+  /** Proposed job start (ISO string) */
+  proposed_start: string
+  /** Proposed job end (ISO string) */
+  proposed_end: string
+  /** Full jobs list to scan */
+  jobs: Job[]
+  /** When rescheduling, pass the job's own ID so it isn't compared to itself */
+  exclude_job_id?: string
+}
+
+export interface ConflictResult {
+  hasConflict: boolean
+  /** The first conflicting job found, or null */
+  conflictingJob: Job | null
+  /** Minutes of overlap (0 if no conflict) */
+  minutesOverlap: number
+}
+
+/**
+ * Returns true if interval [aStart, aEnd) overlaps [bStart, bEnd).
+ * Back-to-back (aEnd === bStart) is NOT a conflict.
+ */
+export function overlapsInterval(
+  aStart: Date, aEnd: Date,
+  bStart: Date, bEnd: Date,
+): boolean {
+  return aStart < bEnd && aEnd > bStart
+}
+
+/**
+ * Detect whether assigning `cleaner_id` to a job from `proposed_start`→`proposed_end`
+ * would conflict with any of their already-scheduled / in-progress jobs.
+ *
+ * Cancelled and completed jobs are ignored.
+ */
+export function detectConflict(params: ConflictCheckParams): ConflictResult {
+  const { cleaner_id, proposed_start, proposed_end, jobs, exclude_job_id } = params
+
+  const pStart = new Date(proposed_start)
+  const pEnd   = new Date(proposed_end)
+
+  // Guard: end must be after start
+  if (pEnd <= pStart) {
+    throw new RangeError('proposed_end must be after proposed_start')
+  }
+
+  const active = jobs.filter(
+    (j) =>
+      j.cleaner_id === cleaner_id &&
+      j.id !== exclude_job_id &&
+      j.status !== 'cancelled' &&
+      j.status !== 'completed',
+  )
+
+  for (const job of active) {
+    const jStart = new Date(job.scheduled_start)
+    const jEnd   = new Date(job.scheduled_end)
+
+    if (overlapsInterval(pStart, pEnd, jStart, jEnd)) {
+      const overlapMs = Math.min(pEnd.getTime(), jEnd.getTime())
+                      - Math.max(pStart.getTime(), jStart.getTime())
+      return {
+        hasConflict: true,
+        conflictingJob: job,
+        minutesOverlap: Math.round(overlapMs / 60_000),
+      }
+    }
+  }
+
+  return { hasConflict: false, conflictingJob: null, minutesOverlap: 0 }
+}
+
+// ── Cancellation guard ────────────────────────────────────────────────────────
+
+/** Minutes before a job start that are considered "en route" */
+export const EN_ROUTE_WINDOW_MINUTES = 30
+
+export type CancellationStatus =
+  | { allowed: true }
+  | { allowed: false; reason: 'in_progress'; message: string }
+  | { allowed: false; reason: 'en_route';    minutesUntilStart: number; message: string }
+
+/**
+ * Determines whether a job can be cancelled.
+ * - `in_progress` jobs are blocked.
+ * - Jobs whose start is ≤ EN_ROUTE_WINDOW_MINUTES away are blocked (cleaner may be en route).
+ * - Everything else is allowed.
+ *
+ * @param job   The job to evaluate.
+ * @param nowIso Optional override for "now" (ISO string) — useful in tests.
+ */
+export function getCancellationStatus(job: Job, nowIso?: string): CancellationStatus {
+  const now   = nowIso ? new Date(nowIso) : new Date()
+  const start = new Date(job.scheduled_start)
+
+  if (job.status === 'in_progress') {
+    return {
+      allowed: false,
+      reason: 'in_progress',
+      message: 'This job is already in progress and cannot be cancelled.',
+    }
+  }
+
+  if (job.status === 'completed' || job.status === 'cancelled') {
+    // Already terminal — still "allowed" to surface to the caller; no harm done.
+    return { allowed: true }
+  }
+
+  const minutesUntilStart = Math.round((start.getTime() - now.getTime()) / 60_000)
+
+  if (minutesUntilStart <= EN_ROUTE_WINDOW_MINUTES && minutesUntilStart > -60) {
+    // Within the en-route window (and not more than 1 h in the past, to avoid
+    // flagging yesterday's missed jobs).
+    return {
+      allowed: false,
+      reason: 'en_route',
+      minutesUntilStart,
+      message: `Cleaner may already be en route (${minutesUntilStart} min until start). Contact them directly before cancelling.`,
+    }
+  }
+
+  return { allowed: true }
+}
