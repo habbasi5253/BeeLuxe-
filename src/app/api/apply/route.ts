@@ -50,19 +50,23 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as ApplicationPayload
 
-    // Hard disqualifiers — skip Claude call
-    if (body.work_authorized === false || body.has_transport === false || body.can_pass_background === false) {
+    // Hard disqualifiers — skip Claude call entirely
+    // These are operational non-starters: no amount of experience overcomes them.
+    const hardRejectReasons: string[] = []
+    if (body.work_authorized === false)       hardRejectReasons.push('Not authorized to work in the U.S.')
+    if (body.has_transport === false)         hardRejectReasons.push('No reliable transportation')
+    if (body.can_pass_background === false)   hardRejectReasons.push('Cannot pass background check')
+    if (body.covers_service_area === false)   hardRejectReasons.push('Cannot cover Houston metro service area')
+    if (body.willing_to_get_insurance === false) hardRejectReasons.push('Unwilling to carry business insurance (~$20/mo required)')
+
+    if (hardRejectReasons.length > 0) {
       return NextResponse.json({
         score: 10,
         recommendation: 'reject',
-        summary: 'Applicant does not meet minimum requirements (work authorization, reliable transportation, or background check).',
+        summary: 'Applicant does not meet minimum operational requirements for BeeLuxe Cleaners.',
         strengths: [],
-        concerns: [
-          !body.work_authorized ? 'Not authorized to work in the U.S.' : '',
-          !body.has_transport   ? 'No reliable transportation' : '',
-          !body.can_pass_background ? 'Cannot pass background check' : '',
-        ].filter(Boolean),
-        owner_notes: 'Hard disqualifier — do not proceed.',
+        concerns: hardRejectReasons,
+        owner_notes: 'Hard disqualifier — do not proceed to interview.',
         auto_vetted: false,
       } satisfies ApplicationResult)
     }
@@ -96,13 +100,21 @@ ${body.notes ? `Additional notes: "${body.notes}"` : ''}
 KEY BEHAVIORAL QUESTION — How they handle a customer who is unsatisfied with a spot they've already cleaned twice:
 "${body.unsatisfied_customer_response}"
 
-⚠️ CRITICAL SCORING NOTE: The ideal answer to the behavioral question is NOT "I'd redo it again." The ideal answer demonstrates communication — asking the customer what their specific expectation is to understand the root of the dissatisfaction. A candidate who just says "I'd clean it again" scores LOW on reliability. A candidate who says they'd ask what the customer expected, understand the issue, and communicate honestly scores HIGH.
+⚠️ CRITICAL SCORING NOTE: The ideal answer to the behavioral question is NOT "I'd redo it again." The ideal answer demonstrates communication — asking the customer what their specific expectation is to understand the root of the dissatisfaction. A candidate who says "I'd clean it again" or "I'd just try harder" scores MAXIMUM 10/30 on RELIABILITY. A candidate who says they'd ask what the customer expected, understand the issue, and communicate honestly earns full RELIABILITY credit.
+
+SCORING RIGOR — READ THIS CAREFULLY:
+- You are the owner's ONLY automated filter. Being too lenient wastes the owner's time on bad interviews.
+- Do NOT round up scores. If the evidence is weak, score weak.
+- 0 or undefined experience types = max 10/35 on EXPERIENCE, regardless of "years."
+- One-word or vague motivation ("money," "need job") = deduct 10pts from RELIABILITY.
+- "Maybe" is NOT a consolation prize — it costs owner time. Default to "reject" when in doubt.
+- A candidate with great experience but a weak behavioral answer must NOT exceed 72 overall (cap ensures "maybe" at best).
 
 SCORE on these dimensions:
 - RELIABILITY (30pts): Behavioral question quality (most important), professionalism, consistency signals
 - EXPERIENCE (35pts): Clean types covered (construction trailer & Airbnb = bonus), years of experience, commercial
-- AVAILABILITY (20pts): Early morning & weekend flexibility, can cover service area
-- LOGISTICS (15pts): Own supplies (or willingness), insurance, transport, solo vs. helper
+- AVAILABILITY (20pts): Early morning & weekend flexibility
+- LOGISTICS (15pts): Own supplies (or willingness), transport, solo vs. helper context
 
 Thresholds: hire ≥ 78 | maybe 55-77 | reject < 55
 

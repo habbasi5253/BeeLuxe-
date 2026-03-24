@@ -3,7 +3,8 @@
 import { useState } from 'react'
 import {
   X, MapPin, Phone, Mail, Calendar, DollarSign, HardHat, MessageSquare,
-  Building2, Home, PhoneCall, Send, FileText, CheckCircle, Loader2
+  Building2, Home, PhoneCall, Send, FileText, CheckCircle, Loader2,
+  KeyRound, Camera, AlertTriangle
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { Lead } from './LeadKanban'
@@ -136,6 +137,48 @@ export function LeadDetailModal({ lead, onClose }: Props) {
                 <div>
                   <p className="label">Notes</p>
                   <p className="text-sm text-luxe-600 leading-relaxed bg-luxe-50 rounded-xl p-3">{lead.notes}</p>
+                </div>
+              )}
+
+              {/* Site Access — critical for AEC jobs on large construction sites */}
+              {lead.lead_type === 'construction_trailer' && (
+                <div>
+                  <p className="label flex items-center gap-1.5">
+                    <AlertTriangle size={11} className="text-orange-500" />
+                    Site Access
+                  </p>
+                  {(lead.site_entry_notes || lead.gate_code || lead.trailer_photo_url) ? (
+                    <div className="space-y-2 bg-orange-50 border border-orange-100 rounded-xl p-3">
+                      {lead.site_entry_notes && (
+                        <div className="flex items-start gap-2 text-xs text-orange-900 leading-relaxed">
+                          <MapPin size={12} className="text-orange-500 mt-0.5 shrink-0" />
+                          <span>{lead.site_entry_notes}</span>
+                        </div>
+                      )}
+                      {lead.gate_code && (
+                        <div className="flex items-center gap-2 text-xs text-orange-900 font-mono">
+                          <KeyRound size={12} className="text-orange-500 shrink-0" />
+                          Gate / Access: <span className="font-bold">{lead.gate_code}</span>
+                        </div>
+                      )}
+                      {lead.trailer_photo_url && (
+                        <a
+                          href={lead.trailer_photo_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-xs text-blue-600 hover:underline font-medium"
+                        >
+                          <Camera size={12} />
+                          View Site Map / Trailer Photo ↗
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2 text-xs text-red-600 font-medium">
+                      <AlertTriangle size={12} />
+                      No site access info — cleaner may not find the trailer. Add entry notes before scheduling.
+                    </div>
+                  )}
                 </div>
               )}
 

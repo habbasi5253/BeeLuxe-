@@ -1,7 +1,8 @@
 'use client'
 
 import { clsx } from 'clsx'
-import { TrendingUp, HardHat, Home, Building2 } from 'lucide-react'
+import { TrendingUp, HardHat, Home, Building2, AlertTriangle, Wrench, Car } from 'lucide-react'
+import { COMPLETED_JOBS, computeProfitLeakSummary, fmtCurrency } from '@/lib/finance'
 
 const clients = [
   {
@@ -45,7 +46,53 @@ export function ClientLedger() {
     outstanding: acc.outstanding + c.outstanding,
   }), { jobs: 0, revenue: 0, payouts: 0, outstanding: 0 })
 
+  const leak = computeProfitLeakSummary(COMPLETED_JOBS)
+  const leakDelta = leak.reportedMargin - leak.trueMargin
+
   return (
+    <div className="space-y-4">
+
+    {/* ── Profit Leak Audit ─────────────────────────────────────────────── */}
+    <div className="card !p-0 overflow-hidden border border-amber-200">
+      <div className="px-5 py-3.5 bg-amber-50 border-b border-amber-100 flex items-center gap-2">
+        <AlertTriangle size={15} className="text-amber-600" />
+        <p className="font-semibold text-amber-900 text-sm">Profit Leak Audit — Hidden Costs</p>
+        <span className="ml-auto text-xs text-amber-600 font-medium">Based on {COMPLETED_JOBS.length} completed jobs</span>
+      </div>
+      <div className="grid grid-cols-4 divide-x divide-amber-100">
+        <div className="px-5 py-4">
+          <p className="text-xs text-luxe-500 mb-1">Reported Margin</p>
+          <p className="text-2xl font-bold text-luxe-900">{leak.reportedMargin}%</p>
+          <p className="text-xs text-luxe-400 mt-0.5">Revenue − Payout only</p>
+        </div>
+        <div className="px-5 py-4">
+          <p className="text-xs text-luxe-500 mb-1 flex items-center gap-1"><Wrench size={11} />Supplies</p>
+          <p className="text-2xl font-bold text-amber-600">−{fmtCurrency(leak.totalSupplies)}</p>
+          <p className="text-xs text-luxe-400 mt-0.5">Chemicals, bags, mop heads</p>
+        </div>
+        <div className="px-5 py-4">
+          <p className="text-xs text-luxe-500 mb-1 flex items-center gap-1"><Car size={11} />Travel</p>
+          <p className="text-2xl font-bold text-amber-600">−{fmtCurrency(leak.totalTravel)}</p>
+          <p className="text-xs text-luxe-400 mt-0.5">Mileage @ $0.67/mi (IRS)</p>
+        </div>
+        <div className="px-5 py-4 bg-amber-50/50">
+          <p className="text-xs text-luxe-500 mb-1">True Margin</p>
+          <p className={clsx('text-2xl font-bold', leak.trueMargin < 55 ? 'text-red-600' : 'text-emerald-600')}>
+            {leak.trueMargin}%
+          </p>
+          <p className="text-xs text-amber-600 mt-0.5 font-medium">
+            −{leakDelta} pts vs reported · ~{fmtCurrency(leak.annualLeakEst)}/yr leak
+          </p>
+        </div>
+      </div>
+      <div className="px-5 py-3 bg-amber-50/40 border-t border-amber-100">
+        <p className="text-xs text-amber-700">
+          <strong>Action:</strong> Consider adding a supplies surcharge ($10–20/job) and a travel fee for Katy/Sugar Land/Woodlands jobs (&gt;20 mi).
+          At current volume, untracked costs erode ~{fmtCurrency(leak.annualLeakEst)} annually.
+        </p>
+      </div>
+    </div>
+
     <div className="card !p-0 overflow-hidden">
       <div className="px-5 py-4 border-b border-luxe-100">
         <p className="font-semibold text-luxe-800">Revenue per Client — Ledger</p>
@@ -128,6 +175,8 @@ export function ClientLedger() {
           </tfoot>
         </table>
       </div>
+    </div>
+
     </div>
   )
 }

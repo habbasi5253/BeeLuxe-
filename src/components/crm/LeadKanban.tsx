@@ -23,6 +23,10 @@ export type Lead = {
   cleaning_frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'custom' | null
   notes: string | null
   created_at: string
+  // AEC site access fields — critical for construction sites (50-acre lots with multiple trailers)
+  site_entry_notes: string | null  // "Enter Gate B, blue trailer near water tower, ask for site super"
+  gate_code: string | null         // access code or badge instructions
+  trailer_photo_url: string | null // direct link to photo so cleaner can identify the right trailer
 }
 
 const mockLeads: Lead[] = [
@@ -34,6 +38,9 @@ const mockLeads: Lead[] = [
     aec_project_id: 'AEC-2024-0441', project_duration_months: 8, cleaning_frequency: 'weekly',
     notes: 'Large multi-phase project. 4 trailers on site.',
     created_at: '2024-01-16T10:00:00Z',
+    site_entry_notes: 'Enter via Gate 3 (north side off Industrial Blvd). Check in with site security. Trailers are labeled A–D near the equipment yard — look for the orange BeeLuxe sticker on the door frame.',
+    gate_code: '4419#',
+    trailer_photo_url: null,
   },
   {
     id: '2', company_name: null, contact_name: 'Sarah Chen',
@@ -43,6 +50,7 @@ const mockLeads: Lead[] = [
     aec_project_id: null, project_duration_months: null, cleaning_frequency: 'biweekly',
     notes: '3BR home, bi-weekly. Referred by Maria G.',
     created_at: '2024-01-17T14:00:00Z',
+    site_entry_notes: null, gate_code: null, trailer_photo_url: null,
   },
   {
     id: '3', company_name: 'BuildRight Corp', contact_name: 'Tom Hughes',
@@ -52,6 +60,9 @@ const mockLeads: Lead[] = [
     aec_project_id: 'AEC-2024-0389', project_duration_months: 6, cleaning_frequency: 'biweekly',
     notes: 'Need to schedule site visit.',
     created_at: '2024-01-14T09:00:00Z',
+    site_entry_notes: 'Main entrance on Commerce Park Dr — parking lot near trailer row. Trailers #1–3 are white with red stripe, parked adjacent to the concrete batch plant.',
+    gate_code: null,
+    trailer_photo_url: null,
   },
   {
     id: '4', company_name: 'Skyline Properties', contact_name: 'Angela Reed',
@@ -61,6 +72,7 @@ const mockLeads: Lead[] = [
     aec_project_id: null, project_duration_months: null, cleaning_frequency: 'monthly',
     notes: 'Office complex, 3 floors. Monthly contract possible.',
     created_at: '2024-01-13T11:00:00Z',
+    site_entry_notes: null, gate_code: null, trailer_photo_url: null,
   },
   {
     id: '5', company_name: 'Ridgeline Homes Dev', contact_name: 'Carlos Vega',
@@ -70,6 +82,9 @@ const mockLeads: Lead[] = [
     aec_project_id: 'AEC-2024-0512', project_duration_months: 18, cleaning_frequency: 'weekly',
     notes: 'Largest pipeline deal. 8-trailer subdivision.',
     created_at: '2024-01-10T08:00:00Z',
+    site_entry_notes: 'LARGE SITE (~50 acres). Enter via Ridgeline Pkwy main gate — badge required (Carlos provides day passes). Trailers 1–8 are arranged in two rows behind the sales center. Row A (1–4) is closest to gate; Row B (5–8) is at the far end near the model homes. Use the site map photo link.',
+    gate_code: 'Badge — call Carlos at 555-0501 for day pass',
+    trailer_photo_url: 'https://example.com/ridgeline-site-layout.jpg',
   },
   {
     id: '6', company_name: null, contact_name: 'James Park',
@@ -79,6 +94,7 @@ const mockLeads: Lead[] = [
     aec_project_id: null, project_duration_months: null, cleaning_frequency: 'weekly',
     notes: 'Weekly cleaning, flexible schedule.',
     created_at: '2024-01-12T15:00:00Z',
+    site_entry_notes: null, gate_code: null, trailer_photo_url: null,
   },
   {
     id: '7', company_name: 'Metro Office Mgmt', contact_name: 'Linda Shaw',
@@ -88,6 +104,7 @@ const mockLeads: Lead[] = [
     aec_project_id: null, project_duration_months: null, cleaning_frequency: 'weekly',
     notes: 'Proposal sent Jan 15. Follow up if no response.',
     created_at: '2024-01-08T10:00:00Z',
+    site_entry_notes: null, gate_code: null, trailer_photo_url: null,
   },
   {
     id: '8', company_name: 'Apex Construction LLC', contact_name: 'Mike Torres',
@@ -97,6 +114,9 @@ const mockLeads: Lead[] = [
     aec_project_id: 'AEC-2023-0388', project_duration_months: 4, cleaning_frequency: 'weekly',
     notes: 'Converted! Monthly recurring.',
     created_at: '2024-01-05T10:00:00Z',
+    site_entry_notes: 'Side entrance off 900 Industrial Blvd service road. Two white Apex-branded trailers near the crane yard.',
+    gate_code: '7731',
+    trailer_photo_url: null,
   },
 ]
 

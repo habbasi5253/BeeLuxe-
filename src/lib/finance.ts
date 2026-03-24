@@ -14,10 +14,38 @@ export interface CompletedJob {
   completed_date: string    // ISO
   hours: number
   gross_revenue: number     // what client pays
-  contractor_payout: number // what cleaner gets
+  contractor_payout: number // what cleaner gets (1099 contractor payment)
+  // Hidden cost fields — these are the "profit leak" the top-line margin % hides
+  supplies_cost: number     // cleaning chemicals, trash bags, mop heads, etc.
+  travel_cost: number       // mileage reimbursement at ~$0.67/mi IRS rate
   cleaner_name: string
   lead_source: LeadSource
   invoice_id: string | null
+}
+
+/** True net after all costs: revenue − payout − supplies − travel */
+export function trueNet(job: CompletedJob): number {
+  return job.gross_revenue - job.contractor_payout - job.supplies_cost - job.travel_cost
+}
+
+/** True margin % (0–100) */
+export function trueMarginPct(job: CompletedJob): number {
+  return Math.round((trueNet(job) / job.gross_revenue) * 100)
+}
+
+/** Aggregate profit-leak summary across a set of jobs */
+export function computeProfitLeakSummary(jobs: CompletedJob[]) {
+  const totalRevenue    = jobs.reduce((s, j) => s + j.gross_revenue, 0)
+  const totalPayout     = jobs.reduce((s, j) => s + j.contractor_payout, 0)
+  const totalSupplies   = jobs.reduce((s, j) => s + j.supplies_cost, 0)
+  const totalTravel     = jobs.reduce((s, j) => s + j.travel_cost, 0)
+  const reportedNet     = totalRevenue - totalPayout
+  const trueNetTotal    = reportedNet - totalSupplies - totalTravel
+  const reportedMargin  = Math.round((reportedNet / totalRevenue) * 100)
+  const trueMargin      = Math.round((trueNetTotal / totalRevenue) * 100)
+  // Annualise: these 13 jobs represent ~1 month; project × 12
+  const annualLeakEst   = (totalSupplies + totalTravel) * 12
+  return { totalRevenue, totalPayout, totalSupplies, totalTravel, reportedNet, trueNetTotal, reportedMargin, trueMargin, annualLeakEst }
 }
 
 export interface InvoiceRecord {
@@ -53,11 +81,14 @@ export interface LeadSourceMetric {
 
 // ── Completed jobs (source of truth for invoicing) ────────────────────────
 export const COMPLETED_JOBS: CompletedJob[] = [
+  // supplies_cost: cleaning chemicals, bags, mop heads (~$12–30 depending on job type)
+  // travel_cost:  IRS mileage ~$0.67/mi; Houston city ≈ $10–14, Katy ≈ $20–24 (30+ mi each way)
   {
     id: 'j001', job_type: 'construction_trailer', description: 'Apex Trailer Site A — Full Clean',
     client_name: 'Brad Holloway', client_company: 'Apex Construction LLC',
     address: '1200 Industrial Blvd', city: 'Houston',
     completed_date: '2026-01-06', hours: 3.5, gross_revenue: 420, contractor_payout: 147,
+    supplies_cost: 18, travel_cost: 12,
     cleaner_name: 'Maria Gonzalez', lead_source: 'site_visit', invoice_id: 'inv001',
   },
   {
@@ -65,6 +96,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Brad Holloway', client_company: 'Apex Construction LLC',
     address: '1220 Industrial Blvd', city: 'Houston',
     completed_date: '2026-01-13', hours: 3.0, gross_revenue: 380, contractor_payout: 133,
+    supplies_cost: 15, travel_cost: 12,
     cleaner_name: 'Maria Gonzalez', lead_source: 'site_visit', invoice_id: 'inv001',
   },
   {
@@ -72,6 +104,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Brad Holloway', client_company: 'Apex Construction LLC',
     address: '1240 Industrial Blvd', city: 'Houston',
     completed_date: '2026-01-20', hours: 4.0, gross_revenue: 460, contractor_payout: 161,
+    supplies_cost: 20, travel_cost: 12,
     cleaner_name: 'Kevin Okafor', lead_source: 'site_visit', invoice_id: null,
   },
   {
@@ -79,6 +112,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Tara Simmons', client_company: 'BuildRight Development',
     address: '550 Commerce Park Dr', city: 'Houston',
     completed_date: '2026-01-07', hours: 3.0, gross_revenue: 360, contractor_payout: 126,
+    supplies_cost: 15, travel_cost: 10,
     cleaner_name: 'Maria Gonzalez', lead_source: 'linkedin', invoice_id: 'inv002',
   },
   {
@@ -86,6 +120,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Tara Simmons', client_company: 'BuildRight Development',
     address: '550 Commerce Park Dr', city: 'Houston',
     completed_date: '2026-01-14', hours: 3.0, gross_revenue: 360, contractor_payout: 126,
+    supplies_cost: 15, travel_cost: 10,
     cleaner_name: 'Maria Gonzalez', lead_source: 'linkedin', invoice_id: null,
   },
   {
@@ -93,6 +128,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Marcus Webb', client_company: 'Ridgeline Homes Dev',
     address: '800 Ridgeline Pkwy', city: 'Katy',
     completed_date: '2026-01-09', hours: 5.0, gross_revenue: 580, contractor_payout: 203,
+    supplies_cost: 30, travel_cost: 22,  // Katy = ~33mi from Houston center
     cleaner_name: 'Aisha Patel', lead_source: 'cold_email', invoice_id: 'inv003',
   },
   {
@@ -100,6 +136,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Lisa Chang', client_company: 'Metro Commercial Props',
     address: '800 Commerce St', city: 'Houston',
     completed_date: '2026-01-05', hours: 5.5, gross_revenue: 540, contractor_payout: 189,
+    supplies_cost: 15, travel_cost: 8,
     cleaner_name: 'Aisha Patel', lead_source: 'google', invoice_id: 'inv004',
   },
   {
@@ -107,6 +144,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Lisa Chang', client_company: 'Metro Commercial Props',
     address: '800 Commerce St', city: 'Houston',
     completed_date: '2026-01-19', hours: 4.5, gross_revenue: 440, contractor_payout: 154,
+    supplies_cost: 12, travel_cost: 8,
     cleaner_name: 'James Wright', lead_source: 'google', invoice_id: null,
   },
   {
@@ -114,6 +152,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Sarah & Tom Green', client_company: 'Greenfield Homes',
     address: '405 Oak Lane', city: 'Katy',
     completed_date: '2026-01-03', hours: 4.0, gross_revenue: 280, contractor_payout: 112,
+    supplies_cost: 20, travel_cost: 22,  // Katy run — significant travel relative to job value
     cleaner_name: 'James Wright', lead_source: 'referral', invoice_id: 'inv005',
   },
   {
@@ -121,6 +160,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Chris Park', client_company: 'Various Residential',
     address: '312 Memorial Dr', city: 'Houston',
     completed_date: '2026-01-10', hours: 2.5, gross_revenue: 195, contractor_payout: 78,
+    supplies_cost: 10, travel_cost: 8,
     cleaner_name: 'Rosa Medina', lead_source: 'direct', invoice_id: null,
   },
   {
@@ -128,6 +168,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Brad Holloway', client_company: 'Apex Construction LLC',
     address: '1300 Industrial Blvd', city: 'Houston',
     completed_date: '2026-01-22', hours: 3.5, gross_revenue: 450, contractor_payout: 158,
+    supplies_cost: 20, travel_cost: 12,
     cleaner_name: 'Kevin Okafor', lead_source: 'site_visit', invoice_id: null,
   },
   {
@@ -135,6 +176,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Tara Simmons', client_company: 'BuildRight Development',
     address: '560 Commerce Park Dr', city: 'Houston',
     completed_date: '2026-01-21', hours: 3.0, gross_revenue: 360, contractor_payout: 126,
+    supplies_cost: 15, travel_cost: 10,
     cleaner_name: 'Maria Gonzalez', lead_source: 'linkedin', invoice_id: null,
   },
   {
@@ -142,6 +184,7 @@ export const COMPLETED_JOBS: CompletedJob[] = [
     client_name: 'Devon Carter', client_company: 'Various Residential',
     address: '222 Riverside Dr', city: 'Houston',
     completed_date: '2026-01-15', hours: 5.0, gross_revenue: 380, contractor_payout: 152,
+    supplies_cost: 25, travel_cost: 10,
     cleaner_name: 'Rosa Medina', lead_source: 'google', invoice_id: null,
   },
 ]
