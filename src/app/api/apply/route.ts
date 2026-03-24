@@ -131,7 +131,10 @@ Respond with ONLY this JSON:
 
     return NextResponse.json({ ...result, auto_vetted } satisfies ApplicationResult)
   } catch (err) {
-    console.error('Apply API error:', err)
+    // Log only the error message — never the request body, which contains
+    // applicant PII (name, phone, behavioral responses).
+    const message = err instanceof Error ? err.message : 'unknown error'
+    console.error('Apply API error:', message)
     return NextResponse.json({ error: 'Application scoring unavailable' }, { status: 500 })
   }
 }

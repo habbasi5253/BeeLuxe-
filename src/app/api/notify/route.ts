@@ -63,12 +63,16 @@ export async function POST(req: NextRequest) {
 
     // If Twilio creds aren't configured, return the message preview without sending
     if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
-      console.log(`[DEMO] SMS to ${payload.phone}: ${smsBody}`)
+      // Redact all but the last 4 digits — phone numbers are PII and must not
+      // appear in plain-text server logs.
+      const redactedPhone = payload.phone.replace(/\d(?=\d{4})/g, '•')
+      console.log(`[DEMO] SMS to ${redactedPhone}: ${smsBody}`)
       return NextResponse.json({
         success: true,
         demo: true,
         message_preview: smsBody,
-        to: payload.phone,
+        // Never echo raw phone numbers back to the client — return redacted form.
+        to: redactedPhone,
       })
     }
 
@@ -81,7 +85,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, sid: msg.sid, to: payload.phone })
   } catch (err) {
-    console.error('Notify API error:', err)
+    // Log only the error message — the payload contains cleaner phone numbers (PII).
+    const message = err instanceof Error ? err.message : 'unknown error'
+    console.error('Notify API error:', message)
     return NextResponse.json({ error: 'SMS service unavailable' }, { status: 500 })
   }
 }

@@ -96,7 +96,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ reply, evaluation })
   } catch (err) {
-    console.error('Interview API error:', err)
+    // Log only the error message — never the message array, which contains
+    // the candidate's full interview transcript (PII).
+    const message = err instanceof Error ? err.message : 'unknown error'
+    console.error('Interview API error:', message)
     return NextResponse.json({ error: 'Interview service unavailable' }, { status: 500 })
   }
 }
