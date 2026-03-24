@@ -1,0 +1,101 @@
+##############################################################################
+# BeeLuxe Cleaners — CI Pipeline
+#
+# Runs on every push and pull request. Three fast gates:
+#   1. typecheck   — tsc --noEmit (catches type errors before deploy)
+#   2. lint        — eslint (enforces code style)
+#   3. test        — vitest (unit tests)
+#
+# Vercel handles deployment automatically via its GitHub integration:
+#   • Every PR   → preview URL (staging.beeluxecleaners.com or *.vercel.app)
+#   • Merge main → production  (beeluxecleaners.com)
+#
+# This CI workflow is a GATE — Vercel won't deploy if these checks fail.
+##############################################################################
+name: CI
+
+on:
+  push:
+    branches: ["main", "claude/**", "feat/**", "fix/**"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true    # cancel stale runs on force-push
+
+jobs:
+  # ── Type check ──────────────────────────────────────────────────────────────
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+  # ── Lint ────────────────────────────────────────────────────────────────────
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+  # ── Tests ───────────────────────────────────────────────────────────────────
+  test:
+    name: Vitest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+        env:
+          # Tests run against mock data — real keys not needed
+          NEXT_PUBLIC_SUPABASE_URL:      https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          NEXT_PUBLIC_APP_ENV:           test
+
+  # ── Build check (optional, uncomment to block broken builds) ────────────────
+  # build:
+  #   name: Next.js Build
+  #   runs-on: ubuntu-latest
+  #   needs: [typecheck, lint, test]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with: { node-version: 20, cache: npm }
+  #     - run: npm ci
+  #     - run: npm run build
+  #       env:
+  #         NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  #         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  #         NEXT_PUBLIC_APP_ENV:           staging

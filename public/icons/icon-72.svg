@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72">
+  <!-- Background circle — deep navy -->
+  <rect width="72" height="72" rx="16" fill="#1a1a2e"/>
+  <!-- Honeycomb hex -->
+  <polygon points="36,8 52,17.6 52,36.4 36,46 20,36.4 20,17.6" fill="#fbbf24" opacity="0.18"/>
+  <!-- Bee body — amber -->
+  <ellipse cx="36" cy="38" rx="10" ry="13" fill="#fbbf24"/>
+  <!-- Bee stripes -->
+  <rect x="26" y="36" width="20" height="4" rx="2" fill="#1a1a2e" opacity="0.5"/>
+  <rect x="26" y="42" width="20" height="4" rx="2" fill="#1a1a2e" opacity="0.5"/>
+  <!-- Wings -->
+  <ellipse cx="23" cy="30" rx="7" ry="5" fill="#e0f2fe" opacity="0.85" transform="rotate(-20,23,30)"/>
+  <ellipse cx="49" cy="30" rx="7" ry="5" fill="#e0f2fe" opacity="0.85" transform="rotate(20,49,30)"/>
+  <!-- Bee head -->
+  <circle cx="36" cy="25" r="7" fill="#fbbf24"/>
+  <!-- Eyes -->
+  <circle cx="33" cy="24" r="1.5" fill="#1a1a2e"/>
+  <circle cx="39" cy="24" r="1.5" fill="#1a1a2e"/>
+  <!-- Antennae -->
+  <line x1="34" y1="18" x2="30" y2="13" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="30" cy="13" r="2" fill="#fbbf24"/>
+  <line x1="38" y1="18" x2="42" y2="13" stroke="#fbbf24" stroke-width="1.5" stroke-linecap="round"/>
+  <circle cx="42" cy="13" r="2" fill="#fbbf24"/>
+  <!-- Stinger -->
+  <polygon points="36,51 33,56 39,56" fill="#d97706"/>
+</svg>

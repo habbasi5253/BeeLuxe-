@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="102" fill="#1a1a2e"/>
+  <!-- Honeycomb decorative hex -->
+  <polygon points="256,58 368,122 368,250 256,314 144,250 144,122" fill="#fbbf24" opacity="0.08"/>
+  <polygon points="256,72 352,126 352,234 256,288 160,234 160,126" fill="none" stroke="#fbbf24" stroke-width="3" opacity="0.20"/>
+  <!-- Wings -->
+  <ellipse cx="146" cy="208" rx="60" ry="38" fill="#bae6fd" opacity="0.82" transform="rotate(-25,146,208)"/>
+  <ellipse cx="366" cy="208" rx="60" ry="38" fill="#bae6fd" opacity="0.82" transform="rotate(25,366,208)"/>
+  <!-- Wing vein detail -->
+  <line x1="116" y1="198" x2="174" y2="218" stroke="white" stroke-width="1" opacity="0.3"/>
+  <line x1="338" y1="218" x2="396" y2="198" stroke="white" stroke-width="1" opacity="0.3"/>
+  <!-- Body -->
+  <ellipse cx="256" cy="306" rx="74" ry="96" fill="#fbbf24"/>
+  <!-- Body shine -->
+  <ellipse cx="238" cy="270" rx="16" ry="30" fill="white" opacity="0.12"/>
+  <!-- Stripes -->
+  <rect x="182" y="285" width="148" height="28" rx="14" fill="#1a1a2e" opacity="0.40"/>
+  <rect x="182" y="320" width="148" height="28" rx="14" fill="#1a1a2e" opacity="0.40"/>
+  <!-- Stinger -->
+  <polygon points="256,402 238,438 274,438" fill="#d97706"/>
+  <!-- Head -->
+  <circle cx="256" cy="183" r="60" fill="#fbbf24"/>
+  <!-- Head shine -->
+  <ellipse cx="240" cy="162" rx="14" ry="20" fill="white" opacity="0.14"/>
+  <!-- Eyes -->
+  <circle cx="232" cy="176" r="12" fill="#1a1a2e"/>
+  <circle cx="280" cy="176" r="12" fill="#1a1a2e"/>
+  <circle cx="236" cy="172" r="4" fill="white" opacity="0.6"/>
+  <circle cx="284" cy="172" r="4" fill="white" opacity="0.6"/>
+  <!-- Smile -->
+  <path d="M 232 200 Q 256 218 280 200" fill="none" stroke="#d97706" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Antennae -->
+  <line x1="240" y1="124" x2="208" y2="80" stroke="#fbbf24" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="206" cy="78" r="12" fill="#fbbf24"/>
+  <line x1="272" y1="124" x2="304" y2="80" stroke="#fbbf24" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="306" cy="78" r="12" fill="#fbbf24"/>
+  <!-- "BL" wordmark below bee -->
+  <text x="256" y="475" font-family="system-ui,sans-serif" font-weight="800" font-size="38" fill="#fbbf24" text-anchor="middle" letter-spacing="4">BEELUXE</text>
+</svg>

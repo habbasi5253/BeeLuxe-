@@ -10,7 +10,8 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate": "node supabase/migrate.js"
+    "db:migrate": "node supabase/migrate.js",
+    "test:rls": "npx tsx scripts/test-rls.ts"
   },
   "repository": {
     "type": "git",
