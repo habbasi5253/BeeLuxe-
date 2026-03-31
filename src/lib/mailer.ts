@@ -135,7 +135,7 @@ function buildEmail(payload: NotifyPayload): EmailContent {
             ['Location', location  || '—'],
             ['Time',     time      ?? '—'],
           ]) +
-          p('Please confirm you're good to go by logging into your portal. If there's a problem, contact dispatch <strong>right away</strong> so we can arrange coverage.') +
+          p("Please confirm you\u2019re good to go by logging into your portal. If there\u2019s a problem, contact dispatch <strong>right away</strong> so we can arrange coverage.") +
           ctaButton('View Job Details →', `${portalUrl}/portal`)
         ),
       }
