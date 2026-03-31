@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 export default function AuthPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,12 +19,15 @@ export default function AuthPage() {
     setError('')
 
     try {
-      // In production, use Supabase auth:
-      // const { error } = await supabase.auth.signInWithPassword({ email, password })
-      await new Promise((r) => setTimeout(r, 800))
-      router.push('/dashboard')
-    } catch {
-      setError('Invalid credentials. Please try again.')
+      const supabase = createClient()
+      const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+      if (authError) throw authError
+      const redirect = searchParams.get('redirect') ?? '/dashboard'
+      router.push(redirect)
+      router.refresh()
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Invalid credentials. Please try again.'
+      setError(msg)
     } finally {
       setLoading(false)
     }
@@ -62,7 +67,7 @@ export default function AuthPage() {
             </button>
           </form>
           <p className="text-center text-xs text-luxe-400 mt-4">
-            Demo: enter any credentials to enter
+            Sign in with your BeeLuxe account
           </p>
         </div>
       </div>

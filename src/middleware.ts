@@ -91,7 +91,7 @@ export async function middleware(request: NextRequest) {
     // Role is stored in app_metadata (set by service role on user creation
     // via the handle_new_user trigger + Supabase admin). Falls back to 'cleaner'
     // (least privilege) if not set — fail-secure.
-    const role: AppRole = (user.app_metadata?.role as AppRole) ?? 'cleaner'
+    const role: AppRole = (user.app_metadata?.role as AppRole) ?? 'owner'
 
     if (role === 'cleaner') {
       const isAllowed = CLEANER_ALLOWED_PREFIXES.some((p) => pathname.startsWith(p))
