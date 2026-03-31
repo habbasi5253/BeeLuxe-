@@ -207,14 +207,20 @@ function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
 }
 
 export function LeadKanban() {
+  const [leads, setLeads] = useState<Lead[]>(mockLeads)
   const [selected, setSelected] = useState<Lead | null>(null)
+
+  const deleteLead = (leadId: string) => {
+    setLeads((prev) => prev.filter((l) => l.id !== leadId))
+    setSelected(null)
+  }
 
   return (
     <>
       <div className="flex gap-3 p-4 h-full min-w-max">
         {columns.map((col) => {
-          const leads = mockLeads.filter((l) => l.status === col.key)
-          const total = leads.reduce((sum, l) => sum + (l.project_value ?? 0), 0)
+          const colLeads = leads.filter((l) => l.status === col.key)
+          const total = colLeads.reduce((sum, l) => sum + (l.project_value ?? 0), 0)
 
           return (
             <div
@@ -228,7 +234,7 @@ export function LeadKanban() {
                 <span className="text-xs font-bold text-luxe-700 uppercase tracking-wide">{col.label}</span>
                 <div className="flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-luxe-100 flex items-center justify-center text-[10px] font-bold text-luxe-600">
-                    {leads.length}
+                    {colLeads.length}
                   </span>
                   {total > 0 && (
                     <span className="text-[10px] text-luxe-400 font-medium">${(total/1000).toFixed(0)}k</span>
@@ -236,10 +242,10 @@ export function LeadKanban() {
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-2.5 space-y-2">
-                {leads.map((lead) => (
+                {colLeads.map((lead) => (
                   <LeadCard key={lead.id} lead={lead} onClick={() => setSelected(lead)} />
                 ))}
-                {leads.length === 0 && (
+                {colLeads.length === 0 && (
                   <div className="text-center py-8 text-xs text-luxe-300">No leads here</div>
                 )}
               </div>
@@ -249,7 +255,7 @@ export function LeadKanban() {
       </div>
 
       {selected && (
-        <LeadDetailModal lead={selected} onClose={() => setSelected(null)} />
+        <LeadDetailModal lead={selected} onClose={() => setSelected(null)} onDelete={deleteLead} />
       )}
     </>
   )

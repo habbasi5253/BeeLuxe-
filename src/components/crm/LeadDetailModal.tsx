@@ -4,7 +4,7 @@ import { useState } from 'react'
 import {
   X, MapPin, Phone, Mail, Calendar, DollarSign, HardHat, MessageSquare,
   Building2, Home, PhoneCall, Send, FileText, CheckCircle, Loader2,
-  KeyRound, Camera, AlertTriangle
+  KeyRound, Camera, AlertTriangle, Trash2
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { Lead } from './LeadKanban'
@@ -12,6 +12,7 @@ import type { Lead } from './LeadKanban'
 interface Props {
   lead: Lead
   onClose: () => void
+  onDelete: (leadId: string) => void
 }
 
 const statusOptions = ['new','contacted','qualified','proposal','won','lost']
@@ -30,11 +31,12 @@ const activities = [
   { type: 'note', icon: FileText, text: 'Lead imported from AEC industry database', time: '5 days ago', color: 'text-luxe-500 bg-luxe-100' },
 ]
 
-export function LeadDetailModal({ lead, onClose }: Props) {
+export function LeadDetailModal({ lead, onClose, onDelete }: Props) {
   const [note, setNote] = useState('')
   const [sendingSMS, setSendingSMS] = useState(false)
   const [smsSent, setSmsSent] = useState(false)
   const [status, setStatus] = useState(lead.status)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const typeIcon = { construction_trailer: HardHat, residential: Home, commercial: Building2, industrial: Building2 }
   const Icon = typeIcon[lead.lead_type]
@@ -239,8 +241,29 @@ export function LeadDetailModal({ lead, onClose }: Props) {
         </div>
 
         <div className="flex items-center justify-between px-6 py-4 border-t border-luxe-100 bg-luxe-50/50">
-          <button onClick={onClose} className="btn-secondary">Close</button>
+          {confirmDelete ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-red-600 font-medium">Delete this lead?</span>
+              <button
+                onClick={() => onDelete(lead.id)}
+                className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-semibold hover:bg-red-700"
+              >
+                Yes, delete
+              </button>
+              <button onClick={() => setConfirmDelete(false)} className="px-3 py-1.5 rounded-xl bg-luxe-100 text-luxe-700 text-xs font-semibold hover:bg-luxe-200">
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-red-500 hover:bg-red-50 text-xs font-medium transition-colors"
+            >
+              <Trash2 size={13} />Delete Lead
+            </button>
+          )}
           <div className="flex gap-2">
+            <button onClick={onClose} className="btn-secondary">Close</button>
             <button className="btn-primary">
               <CheckCircle size={14} />
               Save Changes

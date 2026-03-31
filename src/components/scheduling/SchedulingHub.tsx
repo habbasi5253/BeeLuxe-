@@ -30,6 +30,11 @@ export function SchedulingHub() {
 
   const addJob = (job: Job) => setJobs((prev) => [...prev, job])
 
+  const deleteJob = (jobId: string) => {
+    setJobs((prev) => prev.filter((j) => j.id !== jobId))
+    setSelectedJobId(null)
+  }
+
   const moveJob = (jobId: string, start: string, end: string) =>
     updateJob(jobId, { scheduled_start: start, scheduled_end: end })
 
@@ -159,6 +164,7 @@ export function SchedulingHub() {
           cleaners={MOCK_CLEANERS}
           onClose={() => setSelectedJobId(null)}
           onSave={(updates) => { updateJob(selectedJob.id, updates); setSelectedJobId(null) }}
+          onDelete={deleteJob}
         />
       )}
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   X, MapPin, Clock, DollarSign, Bell, Loader2, CheckCircle2,
-  Circle, AlertCircle, User
+  Circle, AlertCircle, User, Trash2
 } from 'lucide-react'
 import { clsx } from 'clsx'
 import type { Job, Cleaner, ChecklistItem } from '@/lib/scheduling'
@@ -14,6 +14,7 @@ interface Props {
   cleaners: Cleaner[]
   onClose: () => void
   onSave: (updates: Partial<Job>) => void
+  onDelete: (jobId: string) => void
 }
 
 function fmtTime(iso: string) {
@@ -30,13 +31,14 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled:   'bg-red-100 text-red-500',
 }
 
-export function JobDetailPopup({ job, cleaners, onClose, onSave }: Props) {
+export function JobDetailPopup({ job, cleaners, onClose, onSave, onDelete }: Props) {
   const [assignedId, setAssignedId]     = useState(job.cleaner_id ?? '')
   const [checklist, setChecklist]       = useState<ChecklistItem[]>(job.checklist)
   const [notifying, setNotifying]       = useState(false)
   const [notified, setNotified]         = useState(false)
   const [notifyError, setNotifyError]   = useState<string | null>(null)
   const [saving, setSaving]             = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const assignedCleaner = cleaners.find((c) => c.id === assignedId) ?? null
   const done = checklist.filter((i) => i.completed).length
@@ -235,11 +237,34 @@ export function JobDetailPopup({ job, cleaners, onClose, onSave }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 px-5 py-4 border-t border-luxe-100 shrink-0">
-          <button onClick={onClose} className="btn-secondary">Cancel</button>
-          <button onClick={handleSave} disabled={saving} className="btn-primary">
-            {saving ? <><Loader2 size={13} className="animate-spin" />Saving…</> : 'Save Changes'}
-          </button>
+        <div className="flex justify-between gap-2 px-5 py-4 border-t border-luxe-100 shrink-0">
+          {confirmDelete ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-red-600 font-medium">Delete this job?</span>
+              <button
+                onClick={() => onDelete(job.id)}
+                className="px-3 py-1.5 rounded-xl bg-red-600 text-white text-xs font-semibold hover:bg-red-700"
+              >
+                Yes, delete
+              </button>
+              <button onClick={() => setConfirmDelete(false)} className="px-3 py-1.5 rounded-xl bg-luxe-100 text-luxe-700 text-xs font-semibold hover:bg-luxe-200">
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmDelete(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-red-500 hover:bg-red-50 text-xs font-medium transition-colors"
+            >
+              <Trash2 size={13} />Delete Job
+            </button>
+          )}
+          <div className="flex gap-2">
+            <button onClick={onClose} className="btn-secondary">Cancel</button>
+            <button onClick={handleSave} disabled={saving} className="btn-primary">
+              {saving ? <><Loader2 size={13} className="animate-spin" />Saving…</> : 'Save Changes'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
