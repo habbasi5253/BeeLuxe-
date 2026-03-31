@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import {
-  X, MapPin, Phone, Mail, Calendar, DollarSign, HardHat, MessageSquare,
-  Building2, Home, PhoneCall, Send, FileText, CheckCircle, Loader2,
-  KeyRound, Camera, AlertTriangle, Trash2
+  X, MapPin, Phone, Calendar, DollarSign, MessageSquare,
+  Home, Building2, Star, Sparkles, ArrowRightLeft, Wind,
+  PhoneCall, Send, FileText, CheckCircle, Loader2, Trash2
 } from 'lucide-react'
 import { clsx } from 'clsx'
-import type { Lead } from './LeadKanban'
+import type { Lead, LeadType } from './LeadKanban'
 
 interface Props {
   lead: Lead
@@ -25,10 +25,27 @@ const statusColors: Record<string, string> = {
   lost:      'bg-red-100 text-red-500',
 }
 
+const TYPE_ICON: Record<LeadType, React.ElementType> = {
+  residential: Home, commercial: Building2, airbnb: Star,
+  deep_clean: Sparkles, move_in_out: ArrowRightLeft, industrial: Wind,
+}
+const TYPE_COLOR: Record<LeadType, string> = {
+  residential: 'bg-blue-100 text-blue-700',
+  commercial:  'bg-violet-100 text-violet-700',
+  airbnb:      'bg-amber-100 text-amber-700',
+  deep_clean:  'bg-emerald-100 text-emerald-700',
+  move_in_out: 'bg-rose-100 text-rose-700',
+  industrial:  'bg-gray-100 text-gray-700',
+}
+const TYPE_LABEL: Record<LeadType, string> = {
+  residential: 'Residential', commercial: 'Commercial', airbnb: 'Airbnb / STR',
+  deep_clean: 'Deep Clean', move_in_out: 'Move-In/Out', industrial: 'Industrial',
+}
+
 const activities = [
-  { type: 'call', icon: PhoneCall, text: 'Called Mike Torres — discussed trailer schedule', time: '2 days ago', color: 'text-blue-600 bg-blue-100' },
+  { type: 'call', icon: PhoneCall, text: 'Called — introduced BeeLuxe services', time: '2 days ago', color: 'text-blue-600 bg-blue-100' },
   { type: 'sms', icon: MessageSquare, text: 'SMS sent: Introduction + pricing sheet', time: '3 days ago', color: 'text-bee-600 bg-bee-100' },
-  { type: 'note', icon: FileText, text: 'Lead imported from AEC industry database', time: '5 days ago', color: 'text-luxe-500 bg-luxe-100' },
+  { type: 'note', icon: FileText, text: 'Lead added to CRM', time: '5 days ago', color: 'text-luxe-500 bg-luxe-100' },
 ]
 
 export function LeadDetailModal({ lead, onClose, onDelete }: Props) {
@@ -38,8 +55,7 @@ export function LeadDetailModal({ lead, onClose, onDelete }: Props) {
   const [status, setStatus] = useState(lead.status)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
-  const typeIcon = { construction_trailer: HardHat, residential: Home, commercial: Building2, industrial: Building2 }
-  const Icon = typeIcon[lead.lead_type]
+  const Icon = TYPE_ICON[lead.lead_type]
 
   const handleSendFollowUp = async () => {
     setSendingSMS(true)
@@ -54,8 +70,8 @@ export function LeadDetailModal({ lead, onClose, onDelete }: Props) {
         {/* Header */}
         <div className="flex items-start justify-between px-6 py-4 border-b border-luxe-100">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center mt-0.5">
-              <Icon size={20} className="text-orange-700" />
+            <div className={clsx('w-10 h-10 rounded-xl flex items-center justify-center mt-0.5', TYPE_COLOR[lead.lead_type])}>
+              <Icon size={20} />
             </div>
             <div>
               <p className="font-bold text-luxe-900 text-lg leading-tight">
@@ -77,11 +93,9 @@ export function LeadDetailModal({ lead, onClose, onDelete }: Props) {
                     <option key={s} value={s} className="bg-white text-luxe-900 font-normal capitalize">{s}</option>
                   ))}
                 </select>
-                {lead.aec_project_id && (
-                  <span className="text-xs bg-luxe-50 text-luxe-500 px-2 py-0.5 rounded-lg font-mono">
-                    {lead.aec_project_id}
-                  </span>
-                )}
+                <span className="text-xs bg-luxe-50 text-luxe-500 px-2 py-0.5 rounded-lg font-medium capitalize">
+                  {TYPE_LABEL[lead.lead_type]}
+                </span>
               </div>
             </div>
           </div>
@@ -120,10 +134,10 @@ export function LeadDetailModal({ lead, onClose, onDelete }: Props) {
                       ${lead.project_value.toLocaleString()} estimated value
                     </div>
                   )}
-                  {lead.trailer_count && (
+                  {lead.cleaning_frequency && (
                     <div className="flex items-center gap-2 text-sm text-luxe-700">
-                      <HardHat size={13} className="text-luxe-400" />
-                      {lead.trailer_count} trailers on site
+                      <Calendar size={13} className="text-luxe-400" />
+                      {lead.cleaning_frequency.replace('_', '-')} service
                     </div>
                   )}
                   {lead.next_follow_up && (
@@ -142,47 +156,6 @@ export function LeadDetailModal({ lead, onClose, onDelete }: Props) {
                 </div>
               )}
 
-              {/* Site Access — critical for AEC jobs on large construction sites */}
-              {lead.lead_type === 'construction_trailer' && (
-                <div>
-                  <p className="label flex items-center gap-1.5">
-                    <AlertTriangle size={11} className="text-orange-500" />
-                    Site Access
-                  </p>
-                  {(lead.site_entry_notes || lead.gate_code || lead.trailer_photo_url) ? (
-                    <div className="space-y-2 bg-orange-50 border border-orange-100 rounded-xl p-3">
-                      {lead.site_entry_notes && (
-                        <div className="flex items-start gap-2 text-xs text-orange-900 leading-relaxed">
-                          <MapPin size={12} className="text-orange-500 mt-0.5 shrink-0" />
-                          <span>{lead.site_entry_notes}</span>
-                        </div>
-                      )}
-                      {lead.gate_code && (
-                        <div className="flex items-center gap-2 text-xs text-orange-900 font-mono">
-                          <KeyRound size={12} className="text-orange-500 shrink-0" />
-                          Gate / Access: <span className="font-bold">{lead.gate_code}</span>
-                        </div>
-                      )}
-                      {lead.trailer_photo_url && (
-                        <a
-                          href={lead.trailer_photo_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1.5 text-xs text-blue-600 hover:underline font-medium"
-                        >
-                          <Camera size={12} />
-                          View Site Map / Trailer Photo ↗
-                        </a>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="bg-red-50 border border-red-100 rounded-xl p-3 flex items-center gap-2 text-xs text-red-600 font-medium">
-                      <AlertTriangle size={12} />
-                      No site access info — cleaner may not find the trailer. Add entry notes before scheduling.
-                    </div>
-                  )}
-                </div>
-              )}
 
               {/* Auto Follow-Up */}
               <div className="p-3.5 rounded-xl bg-bee-50 border border-bee-100">

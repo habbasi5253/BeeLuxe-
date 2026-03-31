@@ -1,122 +1,93 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { clsx } from 'clsx'
-import { MapPin, Phone, Calendar, DollarSign, HardHat, Home, Building2, ChevronRight } from 'lucide-react'
+import { MapPin, Calendar, DollarSign, Home, Building2, ChevronRight, Sparkles, Wind, ArrowRightLeft, Star } from 'lucide-react'
 import { LeadDetailModal } from './LeadDetailModal'
+
+export type LeadType = 'residential' | 'commercial' | 'airbnb' | 'deep_clean' | 'move_in_out' | 'industrial'
 
 export type Lead = {
   id: string
   company_name: string | null
   contact_name: string
   phone: string | null
-  lead_type: 'construction_trailer' | 'residential' | 'commercial' | 'industrial'
+  lead_type: LeadType
   status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'won' | 'lost'
   site_address: string | null
   city: string | null
   state: string | null
   project_value: number | null
   next_follow_up: string | null
-  trailer_count: number | null
-  aec_project_id: string | null
-  project_duration_months: number | null
-  cleaning_frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'custom' | null
+  cleaning_frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'one_time' | null
   notes: string | null
   created_at: string
-  // AEC site access fields — critical for construction sites (50-acre lots with multiple trailers)
-  site_entry_notes: string | null  // "Enter Gate B, blue trailer near water tower, ask for site super"
-  gate_code: string | null         // access code or badge instructions
-  trailer_photo_url: string | null // direct link to photo so cleaner can identify the right trailer
 }
 
 const mockLeads: Lead[] = [
   {
-    id: '1', company_name: 'Apex Construction LLC', contact_name: 'Mike Torres',
-    phone: '555-0101', lead_type: 'construction_trailer', status: 'new',
-    site_address: '1200 Industrial Blvd', city: 'Dallas', state: 'TX',
-    project_value: 12000, next_follow_up: '2024-01-22', trailer_count: 4,
-    aec_project_id: 'AEC-2024-0441', project_duration_months: 8, cleaning_frequency: 'weekly',
-    notes: 'Large multi-phase project. 4 trailers on site.',
-    created_at: '2024-01-16T10:00:00Z',
-    site_entry_notes: 'Enter via Gate 3 (north side off Industrial Blvd). Check in with site security. Trailers are labeled A–D near the equipment yard — look for the orange BeeLuxe sticker on the door frame.',
-    gate_code: '4419#',
-    trailer_photo_url: null,
-  },
-  {
-    id: '2', company_name: null, contact_name: 'Sarah Chen',
+    id: '1', company_name: null, contact_name: 'Sarah Chen',
     phone: '555-0201', lead_type: 'residential', status: 'new',
     site_address: '8802 Oak Lane', city: 'Plano', state: 'TX',
-    project_value: 280, next_follow_up: '2024-01-20', trailer_count: null,
-    aec_project_id: null, project_duration_months: null, cleaning_frequency: 'biweekly',
-    notes: '3BR home, bi-weekly. Referred by Maria G.',
+    project_value: 280, next_follow_up: '2024-01-20',
+    cleaning_frequency: 'biweekly', notes: '3BR home, bi-weekly. Referred by Maria G.',
     created_at: '2024-01-17T14:00:00Z',
-    site_entry_notes: null, gate_code: null, trailer_photo_url: null,
   },
   {
-    id: '3', company_name: 'BuildRight Corp', contact_name: 'Tom Hughes',
-    phone: '555-0301', lead_type: 'construction_trailer', status: 'contacted',
-    site_address: '550 Commerce Park Dr', city: 'Irving', state: 'TX',
-    project_value: 8400, next_follow_up: '2024-01-23', trailer_count: 3,
-    aec_project_id: 'AEC-2024-0389', project_duration_months: 6, cleaning_frequency: 'biweekly',
-    notes: 'Need to schedule site visit.',
-    created_at: '2024-01-14T09:00:00Z',
-    site_entry_notes: 'Main entrance on Commerce Park Dr — parking lot near trailer row. Trailers #1–3 are white with red stripe, parked adjacent to the concrete batch plant.',
-    gate_code: null,
-    trailer_photo_url: null,
-  },
-  {
-    id: '4', company_name: 'Skyline Properties', contact_name: 'Angela Reed',
-    phone: '555-0401', lead_type: 'commercial', status: 'contacted',
+    id: '2', company_name: 'Skyline Properties', contact_name: 'Angela Reed',
+    phone: '555-0401', lead_type: 'commercial', status: 'new',
     site_address: '100 Main St Suite 200', city: 'Dallas', state: 'TX',
-    project_value: 5200, next_follow_up: '2024-01-21', trailer_count: null,
-    aec_project_id: null, project_duration_months: null, cleaning_frequency: 'monthly',
-    notes: 'Office complex, 3 floors. Monthly contract possible.',
+    project_value: 5200, next_follow_up: '2024-01-21',
+    cleaning_frequency: 'monthly', notes: 'Office complex, 3 floors. Monthly contract.',
     created_at: '2024-01-13T11:00:00Z',
-    site_entry_notes: null, gate_code: null, trailer_photo_url: null,
   },
   {
-    id: '5', company_name: 'Ridgeline Homes Dev', contact_name: 'Carlos Vega',
-    phone: '555-0501', lead_type: 'construction_trailer', status: 'qualified',
-    site_address: '3300 Ridgeline Pkwy', city: 'Frisco', state: 'TX',
-    project_value: 19200, next_follow_up: '2024-01-25', trailer_count: 8,
-    aec_project_id: 'AEC-2024-0512', project_duration_months: 18, cleaning_frequency: 'weekly',
-    notes: 'Largest pipeline deal. 8-trailer subdivision.',
-    created_at: '2024-01-10T08:00:00Z',
-    site_entry_notes: 'LARGE SITE (~50 acres). Enter via Ridgeline Pkwy main gate — badge required (Carlos provides day passes). Trailers 1–8 are arranged in two rows behind the sales center. Row A (1–4) is closest to gate; Row B (5–8) is at the far end near the model homes. Use the site map photo link.',
-    gate_code: 'Badge — call Carlos at 555-0501 for day pass',
-    trailer_photo_url: 'https://example.com/ridgeline-site-layout.jpg',
+    id: '3', company_name: 'Sunset Stays', contact_name: 'Maria Lopez',
+    phone: '555-0301', lead_type: 'airbnb', status: 'contacted',
+    site_address: '22 Lakeside Dr', city: 'Austin', state: 'TX',
+    project_value: 1800, next_follow_up: '2024-01-23',
+    cleaning_frequency: 'weekly', notes: '3-unit Airbnb portfolio, turnover cleans.',
+    created_at: '2024-01-14T09:00:00Z',
   },
   {
-    id: '6', company_name: null, contact_name: 'James Park',
-    phone: '555-0601', lead_type: 'residential', status: 'qualified',
+    id: '4', company_name: null, contact_name: 'James Park',
+    phone: '555-0601', lead_type: 'deep_clean', status: 'contacted',
     site_address: '404 Elm Court', city: 'Richardson', state: 'TX',
-    project_value: 180, next_follow_up: '2024-01-22', trailer_count: null,
-    aec_project_id: null, project_duration_months: null, cleaning_frequency: 'weekly',
-    notes: 'Weekly cleaning, flexible schedule.',
+    project_value: 420, next_follow_up: '2024-01-22',
+    cleaning_frequency: 'one_time', notes: 'One-time deep clean before move-in.',
     created_at: '2024-01-12T15:00:00Z',
-    site_entry_notes: null, gate_code: null, trailer_photo_url: null,
   },
   {
-    id: '7', company_name: 'Metro Office Mgmt', contact_name: 'Linda Shaw',
-    phone: '555-0701', lead_type: 'commercial', status: 'proposal',
+    id: '5', company_name: 'Metro Office Mgmt', contact_name: 'Linda Shaw',
+    phone: '555-0701', lead_type: 'commercial', status: 'qualified',
     site_address: '700 Akard St', city: 'Dallas', state: 'TX',
-    project_value: 7800, next_follow_up: null, trailer_count: null,
-    aec_project_id: null, project_duration_months: null, cleaning_frequency: 'weekly',
-    notes: 'Proposal sent Jan 15. Follow up if no response.',
+    project_value: 7800, next_follow_up: null,
+    cleaning_frequency: 'weekly', notes: 'Proposal sent Jan 15.',
     created_at: '2024-01-08T10:00:00Z',
-    site_entry_notes: null, gate_code: null, trailer_photo_url: null,
   },
   {
-    id: '8', company_name: 'Apex Construction LLC', contact_name: 'Mike Torres',
-    phone: '555-0101', lead_type: 'construction_trailer', status: 'won',
-    site_address: '900 Industrial Blvd', city: 'Dallas', state: 'TX',
-    project_value: 4800, next_follow_up: null, trailer_count: 2,
-    aec_project_id: 'AEC-2023-0388', project_duration_months: 4, cleaning_frequency: 'weekly',
-    notes: 'Converted! Monthly recurring.',
+    id: '6', company_name: null, contact_name: 'Tom Hughes',
+    phone: '555-0302', lead_type: 'move_in_out', status: 'qualified',
+    site_address: '550 Commerce Park Dr', city: 'Irving', state: 'TX',
+    project_value: 350, next_follow_up: '2024-01-24',
+    cleaning_frequency: 'one_time', notes: 'Move-out clean, 4BR house.',
+    created_at: '2024-01-14T09:00:00Z',
+  },
+  {
+    id: '7', company_name: 'Gulf Coast Logistics', contact_name: 'Rosa Martinez',
+    phone: '555-0788', lead_type: 'industrial', status: 'proposal',
+    site_address: '900 Port Blvd', city: 'Houston', state: 'TX',
+    project_value: 12000, next_follow_up: null,
+    cleaning_frequency: 'weekly', notes: 'Warehouse + break rooms. Weekly service.',
     created_at: '2024-01-05T10:00:00Z',
-    site_entry_notes: 'Side entrance off 900 Industrial Blvd service road. Two white Apex-branded trailers near the crane yard.',
-    gate_code: '7731',
-    trailer_photo_url: null,
+  },
+  {
+    id: '8', company_name: null, contact_name: 'Kevin Wright',
+    phone: '555-0102', lead_type: 'residential', status: 'won',
+    site_address: '212 Maple Ave', city: 'Frisco', state: 'TX',
+    project_value: 240, next_follow_up: null,
+    cleaning_frequency: 'biweekly', notes: 'Recurring client. Converted!',
+    created_at: '2024-01-05T10:00:00Z',
   },
 ]
 
@@ -129,17 +100,29 @@ const columns: { key: Lead['status']; label: string; color: string }[] = [
   { key: 'lost',      label: 'Lost',     color: 'border-t-red-400' },
 ]
 
-const typeIcon = {
-  construction_trailer: HardHat,
-  residential: Home,
-  commercial: Building2,
-  industrial: Building2,
+const typeIcon: Record<LeadType, React.ElementType> = {
+  residential:  Home,
+  commercial:   Building2,
+  airbnb:       Star,
+  deep_clean:   Sparkles,
+  move_in_out:  ArrowRightLeft,
+  industrial:   Wind,
 }
-const typeColor = {
-  construction_trailer: 'text-orange-600 bg-orange-100',
-  residential: 'text-blue-600 bg-blue-100',
-  commercial: 'text-violet-600 bg-violet-100',
-  industrial: 'text-gray-600 bg-gray-100',
+const typeColor: Record<LeadType, string> = {
+  residential:  'text-blue-600 bg-blue-100',
+  commercial:   'text-violet-600 bg-violet-100',
+  airbnb:       'text-amber-600 bg-amber-100',
+  deep_clean:   'text-emerald-600 bg-emerald-100',
+  move_in_out:  'text-rose-600 bg-rose-100',
+  industrial:   'text-gray-600 bg-gray-100',
+}
+export const typeLabel: Record<LeadType, string> = {
+  residential:  'Residential',
+  commercial:   'Commercial',
+  airbnb:       'Airbnb / STR',
+  deep_clean:   'Deep Clean',
+  move_in_out:  'Move-In/Out',
+  industrial:   'Industrial',
 }
 
 function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
@@ -171,19 +154,10 @@ function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
         <p className="text-[11px] text-luxe-500 mt-0.5">{lead.contact_name}</p>
       )}
 
-      {(lead.city || lead.trailer_count) && (
-        <div className="flex items-center gap-2 mt-2">
-          {lead.city && (
-            <span className="flex items-center gap-1 text-[11px] text-luxe-400">
-              <MapPin size={10} />{lead.city}, {lead.state}
-            </span>
-          )}
-          {lead.trailer_count && (
-            <span className="text-[11px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded font-medium">
-              {lead.trailer_count} trailers
-            </span>
-          )}
-        </div>
+      {lead.city && (
+        <span className="flex items-center gap-1 text-[11px] text-luxe-400 mt-2">
+          <MapPin size={10} />{lead.city}, {lead.state}
+        </span>
       )}
 
       {followUp && (
@@ -196,23 +170,18 @@ function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
           {followUp.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </div>
       )}
-
-      {lead.aec_project_id && (
-        <div className="mt-2 text-[10px] bg-luxe-50 text-luxe-500 px-2 py-0.5 rounded-lg inline-block font-mono">
-          {lead.aec_project_id}
-        </div>
-      )}
     </button>
   )
 }
 
 export function LeadKanban() {
   const [leads, setLeads] = useState<Lead[]>(mockLeads)
-  const [selected, setSelected] = useState<Lead | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const selected = leads.find((l) => l.id === selectedId) ?? null
 
   const deleteLead = (leadId: string) => {
     setLeads((prev) => prev.filter((l) => l.id !== leadId))
-    setSelected(null)
+    setSelectedId(null)
   }
 
   return (
@@ -243,7 +212,7 @@ export function LeadKanban() {
               </div>
               <div className="flex-1 overflow-y-auto p-2.5 space-y-2">
                 {colLeads.map((lead) => (
-                  <LeadCard key={lead.id} lead={lead} onClick={() => setSelected(lead)} />
+                  <LeadCard key={lead.id} lead={lead} onClick={() => setSelectedId(lead.id)} />
                 ))}
                 {colLeads.length === 0 && (
                   <div className="text-center py-8 text-xs text-luxe-300">No leads here</div>
@@ -255,7 +224,7 @@ export function LeadKanban() {
       </div>
 
       {selected && (
-        <LeadDetailModal lead={selected} onClose={() => setSelected(null)} onDelete={deleteLead} />
+        <LeadDetailModal lead={selected} onClose={() => setSelectedId(null)} onDelete={deleteLead} />
       )}
     </>
   )

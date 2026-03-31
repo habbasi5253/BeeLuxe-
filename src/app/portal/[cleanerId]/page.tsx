@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useState } from 'react'
+import { useState } from 'react'
 import { MOCK_CLEANERS, INITIAL_JOBS, JOB_COLORS } from '@/lib/scheduling'
 import type { Job, ChecklistItem, JobType } from '@/lib/scheduling'
 import {
@@ -208,8 +208,8 @@ function JobCard({ job, onChecklistToggle }: {
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────────
-export default function PortalPage({ params }: { params: Promise<{ cleanerId: string }> }) {
-  const { cleanerId } = use(params)
+export default function PortalPage({ params }: { params: { cleanerId: string } }) {
+  const { cleanerId } = params
 
   const cleaner = MOCK_CLEANERS.find((c) => c.id === cleanerId)
 

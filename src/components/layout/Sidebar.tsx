@@ -10,7 +10,6 @@ import {
   BarChart3,
   Settings,
   ChevronRight,
-  HardHat,
   Send,
   ClipboardList,
   Smartphone,
@@ -87,21 +86,6 @@ export function Sidebar() {
           )
         })}
 
-        <div className="pt-4 pb-1">
-          <p className="px-4 text-[10px] font-bold text-luxe-300 uppercase tracking-widest mb-1">
-            Sprint 1
-          </p>
-        </div>
-
-        <Link
-          href="/construction"
-          className={clsx('sidebar-link', pathname.startsWith('/construction') && 'active')}
-        >
-          <HardHat size={18} className="shrink-0" />
-          <span>Trailer CRM</span>
-          <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-orange-100 text-orange-700">HTX</span>
-        </Link>
-
         <Link
           href="/outreach"
           className={clsx('sidebar-link', pathname.startsWith('/outreach') && 'active')}
@@ -119,12 +103,6 @@ export function Sidebar() {
           <span>Apply Link</span>
           <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-luxe-100 text-luxe-500">↗</span>
         </Link>
-
-        <div className="pt-4 pb-1">
-          <p className="px-4 text-[10px] font-bold text-luxe-300 uppercase tracking-widest mb-1">
-            Sprint 3
-          </p>
-        </div>
 
         <Link
           href="/portal/1"
