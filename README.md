@@ -1,4 +1,4 @@
-# 🐝 BeeLuxe Cleaners — Business-in-a-Box
+# 🐝 BeeLuxe Cleaners — Business-in-a-Box 
 
 A full-stack platform to automate and scale your cleaning company, built with **Next.js 14**, **Supabase**, **Tailwind CSS**, and **TypeScript**.
 
